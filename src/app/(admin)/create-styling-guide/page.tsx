@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { StylingGuide } from '@/lib/types';
+import { Room, StylingGuide } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear una guía de estilo
 const createStylingGuideSchema = z.object({
@@ -20,6 +21,8 @@ type CreateStylingGuideFormData = z.infer<typeof createStylingGuideSchema>;
 export default function CreateStylingGuidePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
 
     const {
         register,
@@ -81,12 +84,11 @@ export default function CreateStylingGuidePage() {
                                     }`}
                             >
                                 <option value="">Selecciona una habitación</option>
-                                <option value="room-1">Dormitorio Principal - Villa Mediterránea</option>
-                                <option value="room-2">Salón - Villa Mediterránea</option>
-                                <option value="room-3">Cocina - Villa Mediterránea</option>
-                                <option value="room-4">Dormitorio Secundario - Villa Mediterránea</option>
-                                <option value="room-5">Salón - Apartamento Centro</option>
-                                <option value="room-6">Cocina - Apartamento Centro</option>
+                                {rooms.map((room) => (
+                                    <option key={room.id} value={room.id}>
+                                        {room.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.room_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.room_id.message}</p>
@@ -192,20 +194,6 @@ export default function CreateStylingGuidePage() {
                             </button>
                         </div>
                     </form>
-
-                    {/* Información adicional */}
-                    <div className="mt-8 p-4 bg-blue-50 rounded-md">
-                        <h3 className="text-sm font-medium text-blue-800 mb-2">
-                            💡 Las guías de estilo incluyen:
-                        </h3>
-                        <div className="text-sm text-blue-700 space-y-1">
-                            <p>• <strong>Fotos de referencia:</strong> Imágenes del estilo deseado</p>
-                            <p>• <strong>Códigos QR:</strong> Para acceso rápido a la guía</p>
-                            <p>• <strong>Galería de imágenes:</strong> Múltiples vistas del estilo</p>
-                            <p>• <strong>Vincular con habitaciones:</strong> Cada habitación puede tener su propio estilo</p>
-                        </div>
-                    </div>
-
 
                 </div>
             </div>

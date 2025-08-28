@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { HomeInventory } from '@/lib/types';
+import { Amenity, Home, HomeInventory, RoomType, Supplier } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear inventario
 const createInventorySchema = z.object({
@@ -26,6 +27,11 @@ type CreateInventoryFormData = z.infer<typeof createInventorySchema>;
 export default function CreateInventoryPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
+    const { data: amenities, isLoading: isLoadingAmenities, error: amenitiesError } = useApiData<Amenity>('amenities');
+    const { data: roomTypes, isLoading: isLoadingRoomTypes, error: roomTypesError } = useApiData<RoomType>('rooms-type');
+    const { data: suppliers, isLoading: isLoadingSuppliers, error: suppliersError } = useApiData<Supplier>('suppliers');
 
     const {
         register,
@@ -87,10 +93,11 @@ export default function CreateInventoryPage() {
                                     }`}
                             >
                                 <option value="">Selecciona una casa</option>
-                                <option value="home-1">Villa Mediterránea</option>
-                                <option value="home-2">Apartamento Centro</option>
-                                <option value="home-3">Casa de Montaña</option>
-                                <option value="home-4">Loft Industrial</option>
+                                {homes.map((home) => (
+                                    <option key={home.id} value={home.id}>
+                                        {home.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.home_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.home_id.message}</p>
@@ -109,11 +116,11 @@ export default function CreateInventoryPage() {
                                     }`}
                             >
                                 <option value="">Selecciona un producto</option>
-                                <option value="amenity-1">Nevera Samsung Family Hub</option>
-                                <option value="amenity-2">Sofá IKEA EKENÄSET</option>
-                                <option value="amenity-3">Lámpara Philips Hue</option>
-                                <option value="amenity-4">Cama King Size</option>
-                                <option value="amenity-5">Televisor LG OLED</option>
+                                {amenities.map((amenity) => (
+                                    <option key={amenity.id} value={amenity.id}>
+                                        {amenity.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.amenity_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.amenity_id.message}</p>
@@ -131,10 +138,11 @@ export default function CreateInventoryPage() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">Sin asignar a habitación específica</option>
-                                <option value="room-1">Dormitorio Principal</option>
-                                <option value="room-2">Salón</option>
-                                <option value="room-3">Cocina</option>
-                                <option value="room-4">Baño</option>
+                                {roomTypes.map((roomType) => (
+                                    <option key={roomType.id} value={roomType.id}>
+                                        {roomType.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -206,10 +214,11 @@ export default function CreateInventoryPage() {
                                     }`}
                             >
                                 <option value="">Selecciona un proveedor</option>
-                                <option value="supplier-1">Electrodomésticos García</option>
-                                <option value="supplier-2">Muebles López</option>
-                                <option value="supplier-3">Iluminación Martínez</option>
-                                <option value="supplier-4">Tecnología Rodríguez</option>
+                                {suppliers.map((supplier) => (
+                                    <option key={supplier.id} value={supplier.id}>
+                                        {supplier.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.supplier_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.supplier_id.message}</p>

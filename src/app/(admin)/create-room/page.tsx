@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreateRoom } from '@/lib/types';
+import { CreateRoom, RoomType } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear una habitación
 const createRoomSchema = z.object({
@@ -19,6 +20,8 @@ type CreateRoomFormData = z.infer<typeof createRoomSchema>;
 export default function CreateRoomPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: roomTypes, isLoading: isLoadingRoomTypes, error: roomTypesError } = useApiData<RoomType>('rooms-type');
 
     const {
         register,
@@ -120,16 +123,11 @@ export default function CreateRoomPage() {
                                     }`}
                             >
                                 <option value="">Selecciona un tipo</option>
-                                <option value="type-1">Dormitorio Principal</option>
-                                <option value="type-2">Dormitorio Secundario</option>
-                                <option value="type-3">Baño Completo</option>
-                                <option value="type-4">Baño de Invitados</option>
-                                <option value="type-5">Cocina</option>
-                                <option value="type-6">Salón</option>
-                                <option value="type-7">Comedor</option>
-                                <option value="type-8">Oficina</option>
-                                <option value="type-9">Lavandería</option>
-                                <option value="type-10">Garaje</option>
+                                {roomTypes.map((roomType) => (
+                                    <option key={roomType.id} value={roomType.id}>
+                                        {roomType.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.room_type_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.room_type_id.message}</p>

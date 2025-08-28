@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreateAmenity } from '@/lib/types';
+import { CreateAmenity, Category, Brand } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear un amenity
 const createAmenitySchema = z.object({
@@ -24,6 +25,10 @@ type CreateAmenityFormData = z.infer<typeof createAmenitySchema>;
 export default function CreateAmenityPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    // Usar hooks personalizados para cargar datos
+    const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories');
+    const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
 
     const {
         register,
@@ -101,17 +106,22 @@ export default function CreateAmenityPage() {
                                 id="category_id"
                                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.category_id ? 'border-red-300' : 'border-gray-300'
                                     }`}
+                                disabled={isLoadingCategories}
                             >
-                                <option value="">Selecciona una categoría</option>
-                                <option value="Electrodomestico">Electrodoméstico</option>
-                                <option value="Mueble">Mueble</option>
-                                <option value="Iluminacion">Iluminación</option>
-                                <option value="Textil">Textil</option>
-                                <option value="Tecnologia">Tecnología</option>
-                                <option value="Decoracion">Decoración</option>
+                                <option value="">
+                                    {isLoadingCategories ? 'Cargando categorías...' : 'Selecciona una categoría'}
+                                </option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.category_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.category_id.message}</p>
+                            )}
+                            {isLoadingCategories && (
+                                <p className="mt-1 text-sm text-gray-500">Cargando categorías desde la base de datos...</p>
                             )}
                         </div>
 
@@ -125,16 +135,22 @@ export default function CreateAmenityPage() {
                                 id="brand_id"
                                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.brand_id ? 'border-red-300' : 'border-gray-300'
                                     }`}
+                                disabled={isLoadingBrands}
                             >
-                                <option value="">Selecciona una marca</option>
-                                <option value="Samsung">Samsung</option>
-                                <option value="IKEA">IKEA</option>
-                                <option value="Philips">Philips</option>
-                                <option value="Bosch">Bosch</option>
-                                <option value="Apple">Apple</option>
+                                <option value="">
+                                    {isLoadingBrands ? 'Cargando marcas...' : 'Selecciona una marca'}
+                                </option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>
+                                        {brand.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.brand_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.brand_id.message}</p>
+                            )}
+                            {isLoadingBrands && (
+                                <p className="mt-1 text-sm text-gray-500">Cargando marcas desde la base de datos...</p>
                             )}
                         </div>
 
@@ -209,7 +225,7 @@ export default function CreateAmenityPage() {
                                 rows={4}
                                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? 'border-red-300' : 'border-gray-300'
                                     }`}
-                                placeholder="Describe las características del producto..."
+                                placeholder="Describe el producto, sus características, materiales..."
                             />
                             {errors.description && (
                                 <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
@@ -236,7 +252,7 @@ export default function CreateAmenityPage() {
                             )}
                         </div>
 
-                        {/* Imágenes */}
+                        {/* URLs de imágenes */}
                         <div>
                             <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
                                 URLs de Imágenes (separadas por comas)
@@ -245,13 +261,12 @@ export default function CreateAmenityPage() {
                                 {...register('images')}
                                 id="images"
                                 rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.images ? 'border-red-300' : 'border-gray-300'
-                                    }`}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg..."
                             />
-                            {errors.images && (
-                                <p className="mt-1 text-sm text-red-600">{errors.images.message}</p>
-                            )}
+                            <p className="mt-1 text-sm text-gray-500">
+                                Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.
+                            </p>
                         </div>
 
                         {/* Mensaje de estado */}
@@ -282,6 +297,7 @@ export default function CreateAmenityPage() {
                             </button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>

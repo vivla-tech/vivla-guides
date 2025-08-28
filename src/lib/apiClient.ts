@@ -79,15 +79,15 @@ export function createApiClient(baseUrl: string) {
 
     // ROOM TYPES (Tipos de Habitación)
     listRoomTypes: (params?: { page?: number; pageSize?: number }) =>
-      request<ListResponse<RoomType>>(`/room-types${q(params)}`),
+      request<ListResponse<RoomType>>(`/rooms-type${q(params)}`),
     createRoomType: (payload: CreateRoomType) =>
-      request<ItemResponse<RoomType>>(`/room-types`, { method: 'POST', body: JSON.stringify(payload) }),
+      request<ItemResponse<RoomType>>(`/rooms-type`, { method: 'POST', body: JSON.stringify(payload) }),
     getRoomTypeById: (id: string) =>
-      request<ItemResponse<RoomType>>(`/room-types/${id}`),
+      request<ItemResponse<RoomType>>(`/rooms-type/${id}`),
     updateRoomType: (id: string, payload: Partial<CreateRoomType>) =>
-      request<ItemResponse<RoomType>>(`/room-types/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+      request<ItemResponse<RoomType>>(`/rooms-type/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteRoomType: (id: string) =>
-      request<{}>(`/room-types/${id}`, { method: 'DELETE' }),
+      request<{}>(`/rooms-type/${id}`, { method: 'DELETE' }),
 
     // CATEGORIES (Categorías)
     listCategories: (params?: { page?: number; pageSize?: number }) =>

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Playbook } from '@/lib/types';
+import { Playbook, Room } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear un playbook
 const createPlaybookSchema = z.object({
@@ -21,6 +22,8 @@ type CreatePlaybookFormData = z.infer<typeof createPlaybookSchema>;
 export default function CreatePlaybookPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
 
     const {
         register,
@@ -82,12 +85,11 @@ export default function CreatePlaybookPage() {
                                     }`}
                             >
                                 <option value="">Selecciona una habitación</option>
-                                <option value="room-1">Dormitorio Principal - Villa Mediterránea</option>
-                                <option value="room-2">Salón - Villa Mediterránea</option>
-                                <option value="room-3">Cocina - Villa Mediterránea</option>
-                                <option value="room-4">Baño - Villa Mediterránea</option>
-                                <option value="room-5">Salón - Apartamento Centro</option>
-                                <option value="room-6">Cocina - Apartamento Centro</option>
+                                {rooms.map((room) => (
+                                    <option key={room.id} value={room.id}>
+                                        {room.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.room_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.room_id.message}</p>

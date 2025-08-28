@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ApplianceGuide } from '@/lib/types';
+import { ApplianceGuide, Brand } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear una guía de electrodomésticos
 const createApplianceGuideSchema = z.object({
@@ -24,6 +25,8 @@ type CreateApplianceGuideFormData = z.infer<typeof createApplianceGuideSchema>;
 export default function CreateApplianceGuidePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
 
     const {
         register,
@@ -103,14 +106,11 @@ export default function CreateApplianceGuidePage() {
                                     }`}
                             >
                                 <option value="">Selecciona una marca</option>
-                                <option value="brand-1">Samsung</option>
-                                <option value="brand-2">Bosch</option>
-                                <option value="brand-3">Miele</option>
-                                <option value="brand-4">LG</option>
-                                <option value="brand-5">Philips</option>
-                                <option value="brand-6">Whirlpool</option>
-                                <option value="brand-7">Electrolux</option>
-                                <option value="brand-8">Siemens</option>
+                                {brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>
+                                        {brand.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.brand_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.brand_id.message}</p>
