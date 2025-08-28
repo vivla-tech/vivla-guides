@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateCategory } from '@/lib/types';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una categoría
 const createCategorySchema = z.object({
@@ -17,6 +19,7 @@ type CreateCategoryFormData = z.infer<typeof createCategorySchema>;
 export default function CreateCategoryPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const apiClient = createApiClient(config.apiUrl);
 
     const {
         register,
@@ -32,21 +35,28 @@ export default function CreateCategoryPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const apiData: CreateCategory = {
+                name: data.name,
+                description: data.description,
+            };
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Categoría creada exitosamente!'
-            });
+            const response = await apiClient.createCategory(apiData);
 
-            // Limpiar formulario
-            reset();
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Categoría creada exitosamente!'
+                });
 
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la categoría en el servidor'
+                });
+            }
         } catch (error) {
             setSubmitMessage({
                 type: 'error',

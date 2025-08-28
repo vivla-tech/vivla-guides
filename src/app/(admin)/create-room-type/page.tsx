@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateRoomType } from '@/lib/types';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear un tipo de habitación
 const createRoomTypeSchema = z.object({
@@ -16,6 +18,7 @@ type CreateRoomTypeFormData = z.infer<typeof createRoomTypeSchema>;
 export default function CreateRoomTypePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const apiClient = createApiClient(config.apiUrl);
 
     const {
         register,
@@ -31,25 +34,31 @@ export default function CreateRoomTypePage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            const apiData: CreateRoomType = {
+                name: data.name,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await apiClient.createRoomType(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Tipo de habitación creado exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Tipo de habitación creado exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
-
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el tipo de habitación en el servidor'
+                });
+            }
         } catch (error) {
+            console.error('Error al crear tipo de habitación:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el tipo de habitación'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

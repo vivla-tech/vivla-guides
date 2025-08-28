@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateBrand } from '@/lib/types';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una marca
 const createBrandSchema = z.object({
@@ -18,6 +20,8 @@ type CreateBrandFormData = z.infer<typeof createBrandSchema>;
 export default function CreateBrandPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const apiClient = createApiClient(config.apiUrl);
+
 
     const {
         register,
@@ -33,25 +37,33 @@ export default function CreateBrandPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            const apiData: CreateBrand = {
+                name: data.name,
+                website: data.website || '',
+                contact_info: data.contact_info,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await apiClient.createBrand(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Marca creada exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Marca creada exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
-
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la marca en el servidor'
+                });
+            }
         } catch (error) {
+            console.error('Error al crear marca:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear la marca'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
