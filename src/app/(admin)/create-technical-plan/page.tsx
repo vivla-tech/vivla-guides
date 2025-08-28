@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { TechnicalPlan } from '@/lib/types';
+import { Home, TechnicalPlan } from '@/lib/types';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para crear un plano técnico
 const createTechnicalPlanSchema = z.object({
@@ -24,6 +25,8 @@ type CreateTechnicalPlanFormData = z.infer<typeof createTechnicalPlanSchema>;
 export default function CreateTechnicalPlanPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
 
     const {
         register,
@@ -85,10 +88,11 @@ export default function CreateTechnicalPlanPage() {
                                     }`}
                             >
                                 <option value="">Selecciona una casa</option>
-                                <option value="home-1">Villa Mediterránea</option>
-                                <option value="home-2">Apartamento Centro</option>
-                                <option value="home-3">Casa de Montaña</option>
-                                <option value="home-4">Loft Industrial</option>
+                                {homes.map((home) => (
+                                    <option key={home.id} value={home.id}>
+                                        {home.name}
+                                    </option>
+                                ))}
                             </select>
                             {errors.home_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.home_id.message}</p>
