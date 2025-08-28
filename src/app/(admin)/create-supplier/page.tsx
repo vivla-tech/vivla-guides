@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateSupplier } from '@/lib/types';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear un proveedor
 const createSupplierSchema = z.object({
@@ -19,6 +21,7 @@ type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
 export default function CreateSupplierPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const apiClient = createApiClient(config.apiUrl);
 
     const {
         register,
@@ -34,25 +37,34 @@ export default function CreateSupplierPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            const apiData: CreateSupplier = {
+                name: data.name,
+                website: data.website || '',
+                contact_email: data.contact_email,
+                phone: data.phone,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await apiClient.createSupplier(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Proveedor creado exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Proveedor creado exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
-
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el proveedor en el servidor'
+                });
+            }
         } catch (error) {
+            console.error('Error al crear proveedor:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el proveedor'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

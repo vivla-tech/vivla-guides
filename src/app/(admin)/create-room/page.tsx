@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateRoom, Home, RoomType } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una habitación
 const createRoomSchema = z.object({
@@ -23,6 +25,7 @@ export default function CreateRoomPage() {
 
     const { data: roomTypes, isLoading: isLoadingRoomTypes, error: roomTypesError } = useApiData<RoomType>('rooms-type');
     const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
+    const apiClient = createApiClient(config.apiUrl);
 
 
 
@@ -40,25 +43,33 @@ export default function CreateRoomPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            const apiData: CreateRoom = {
+                name: data.name,
+                home_id: data.home_id,
+                room_type_id: data.room_type_id,
+                description: data.description,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await apiClient.createRoom(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Habitación creada exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Habitación creada exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
-
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la habitación en el servidor'
+                });
+            }
         } catch (error) {
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear la habitación'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
