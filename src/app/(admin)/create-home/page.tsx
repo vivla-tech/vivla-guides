@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateHome } from '@/lib/types';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una casa
 const createHomeSchema = z.object({
@@ -20,6 +22,8 @@ export default function CreateHomePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+    const apiClient = createApiClient(config.apiUrl);
+
     const {
         register,
         handleSubmit,
@@ -34,25 +38,38 @@ export default function CreateHomePage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API (main_image puede ser undefined)
+            const apiData: CreateHome = {
+                name: data.name,
+                destination: data.destination,
+                address: data.address,
+                main_image: data.main_image || '', // Convertir undefined a string vacío
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamada real a la API
+            const response = await apiClient.createHome(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Casa creada exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Casa creada exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                // Manejar error de la API
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la casa en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear casa:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear la casa'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
