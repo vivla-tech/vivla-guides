@@ -81,15 +81,15 @@ export interface HomeInventory {
   id: string;                    // UUID
   home_id: string;               // UUID de la casa
   amenity_id: string;            // UUID del amenity
-  room_id: string;               // UUID de la habitación (opcional)
+  room_id?: string;              // UUID de la habitación (opcional)
   quantity: number;              // Cantidad
   location_details: string;      // Detalles de ubicación
   minimum_threshold: number;     // Umbral mínimo de stock
   supplier_id: string;           // UUID del proveedor
-  purchase_link: string;         // Enlace de compra
+  purchase_link?: string;        // Enlace de compra (opcional)
   purchase_price: number;        // Precio de compra
-  last_restocked_date: Date;     // Fecha del último reabastecimiento
-  notes: string;                 // Notas (TEXT)
+  last_restocked_date?: Date;    // Fecha del último reabastecimiento (opcional)
+  notes?: string;                // Notas (TEXT) (opcional)
   created_at: Date;
   updated_at: Date;
 }
@@ -156,6 +156,7 @@ export type CreateAmenity = Omit<Amenity, 'id' | 'created_at' | 'updated_at'>;
 export type CreateCategory = Omit<Category, 'id' | 'created_at' | 'updated_at'>;
 export type CreateBrand = Omit<Brand, 'id' | 'created_at' | 'updated_at'>;
 export type CreateSupplier = Omit<Supplier, 'id' | 'created_at' | 'updated_at'>;
+export type CreateInventory = Omit<HomeInventory, 'id' | 'created_at' | 'updated_at'>;
 
 // ===== TIPOS DE RESPUESTA DE LA API =====
 

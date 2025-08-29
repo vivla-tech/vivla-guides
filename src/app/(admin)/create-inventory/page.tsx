@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Amenity, Home, HomeInventory, RoomType, Supplier } from '@/lib/types';
+import { Amenity, CreateInventory, Home, HomeInventory, Room, Supplier } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear inventario
 const createInventorySchema = z.object({
@@ -30,8 +32,10 @@ export default function CreateInventoryPage() {
 
     const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
     const { data: amenities, isLoading: isLoadingAmenities, error: amenitiesError } = useApiData<Amenity>('amenities');
-    const { data: roomTypes, isLoading: isLoadingRoomTypes, error: roomTypesError } = useApiData<RoomType>('rooms-type');
+    const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
     const { data: suppliers, isLoading: isLoadingSuppliers, error: suppliersError } = useApiData<Supplier>('suppliers');
+
+    const apiClient = createApiClient(config.apiUrl);
 
     const {
         register,
@@ -47,25 +51,43 @@ export default function CreateInventoryPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            const apiData: CreateInventory = {
+                home_id: data.home_id,
+                amenity_id: data.amenity_id,
+                room_id: data.room_id || undefined, // ✅ undefined en lugar de string vacío
+                quantity: data.quantity,
+                location_details: data.location_details,
+                minimum_threshold: data.minimum_threshold,
+                supplier_id: data.supplier_id,
+                purchase_link: data.purchase_link || undefined, // ✅ undefined en lugar de string vacío
+                purchase_price: data.purchase_price,
+                last_restocked_date: data.last_restocked_date ? new Date(data.last_restocked_date) : undefined, // ✅ undefined en lugar de Date() por defecto
+                notes: data.notes || undefined, // ✅ undefined en lugar de string vacío
+            };
+            // Llamada real a la API usando el método genérico
+            const response = await apiClient.createInventory(apiData);
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Inventario creado exitosamente!'
+                });
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Inventario creado exitosamente!'
-            });
-
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                // Manejar error de la API
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el inventario en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear inventario:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el inventario'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
@@ -138,9 +160,9 @@ export default function CreateInventoryPage() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">Sin asignar a habitación específica</option>
-                                {roomTypes.map((roomType) => (
-                                    <option key={roomType.id} value={roomType.id}>
-                                        {roomType.name}
+                                {rooms.map((room) => (
+                                    <option key={room.id} value={room.id}>
+                                        {room.name}
                                     </option>
                                 ))}
                             </select>

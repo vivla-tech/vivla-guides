@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateAmenity, Category, Brand } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear un amenity
 const createAmenitySchema = z.object({
@@ -30,6 +32,8 @@ export default function CreateAmenityPage() {
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories');
     const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
 
+    const apiClient = createApiClient(config.apiUrl);
+
     const {
         register,
         handleSubmit,
@@ -44,25 +48,43 @@ export default function CreateAmenityPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API
+            const apiData: CreateAmenity = {
+                name: data.name,
+                category_id: data.category_id,
+                brand_id: data.brand_id,
+                reference: data.reference,
+                amenity_type: data.amenity_type,
+                model: data.model,
+                description: data.description,
+                base_price: data.base_price,
+                images: data.images ? data.images.split(',').map(url => url.trim()) : [],
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamada real a la API
+            const response = await apiClient.createAmenity(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Amenity creado exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Amenity creado exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                // Manejar error de la API
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el amenity en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear amenity:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el amenity'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

@@ -16,7 +16,9 @@ import {
   CreateAmenity,
   CreateCategory,
   CreateBrand,
-  CreateSupplier
+  CreateSupplier,
+  CreateInventory,
+  HomeInventory
 } from './types';
 
 export type { ListMeta, ListResponse, ItemResponse, ErrorResponse };
@@ -124,6 +126,18 @@ export function createApiClient(baseUrl: string) {
       request<ItemResponse<Amenity>>(`/amenities/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteAmenity: (id: string) =>
       request<{}>(`/amenities/${id}`, { method: 'DELETE' }),
+
+    // INVENTORY (Inventario)
+    listInventory: (params?: { page?: number; pageSize?: number; home_id?: string; amenity_id?: string; room_id?: string }) =>
+      request<ListResponse<HomeInventory>>(`/home-inventory${q(params)}`),
+    createInventory: (payload: CreateInventory) =>
+      request<ItemResponse<HomeInventory>>(`/home-inventory`, { method: 'POST', body: JSON.stringify(payload) }),
+    getInventoryById: (id: string) =>
+      request<ItemResponse<HomeInventory>>(`/home-inventory/${id}`),
+    updateInventory: (id: string, payload: Partial<CreateInventory>) =>
+      request<ItemResponse<HomeInventory>>(`/home-inventory/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteInventory: (id: string) =>
+      request<{}>(`/home-inventory/${id}`, { method: 'DELETE' }),
 
     // SUPPLIERS (Proveedores)
     listSuppliers: (params?: { page?: number; pageSize?: number }) =>
