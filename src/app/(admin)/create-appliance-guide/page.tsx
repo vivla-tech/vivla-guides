@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ApplianceGuide, Brand } from '@/lib/types';
+import { ApplianceGuide, Brand, CreateApplianceGuide } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una guía de electrodomésticos
 const createApplianceGuideSchema = z.object({
@@ -28,6 +30,8 @@ export default function CreateApplianceGuidePage() {
 
     const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
 
+    const apiClient = createApiClient(config.apiUrl);
+
     const {
         register,
         handleSubmit,
@@ -42,25 +46,42 @@ export default function CreateApplianceGuidePage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API
+            const apiData: CreateApplianceGuide = {
+                equipment_name: data.equipment_name,
+                brand_id: data.brand_id,
+                model: data.model,
+                brief_description: data.brief_description,
+                image_urls: data.image_urls ? data.image_urls.split(',').map(url => url.trim()).filter(url => url.length > 0) : [],
+                pdf_url: data.pdf_url || undefined,
+                video_url: data.video_url || undefined,
+                quick_use_bullets: data.quick_use_bullets,
+                maintenance_bullets: data.maintenance_bullets,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamada real a la API
+            const response = await apiClient.createApplianceGuide(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Guía de electrodoméstico creada exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Guía de electrodoméstico creada exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la guía de electrodoméstico en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear guía de electrodoméstico:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear la guía de electrodoméstico'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

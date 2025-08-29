@@ -22,7 +22,11 @@ import {
   HomeInventory,
   StylingGuide,
   Playbook,
-  CreatePlaybook
+  CreatePlaybook,
+  ApplianceGuide,
+  CreateApplianceGuide,
+  TechnicalPlan,
+  CreateTechnicalPlan
 } from './types';
 
 export type { ListMeta, ListResponse, ItemResponse, ErrorResponse };
@@ -178,6 +182,31 @@ export function createApiClient(baseUrl: string) {
       request<ItemResponse<Playbook>>(`/playbooks/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deletePlaybook: (id: string) =>
       request<{}>(`/playbooks/${id}`, { method: 'DELETE' }),
+
+    // APPLIANCE GUIDES (Guías de Electrodomésticos)
+    listApplianceGuides: (params?: { page?: number; pageSize?: number; home_id?: string }) =>
+      request<ListResponse<ApplianceGuide>>(`/appliance-guides${q(params)}`),
+    createApplianceGuide: (payload: CreateApplianceGuide) =>
+      request<ItemResponse<ApplianceGuide>>(`/appliance-guides`, { method: 'POST', body: JSON.stringify(payload) }),
+    getApplianceGuideById: (id: string) =>
+      request<ItemResponse<ApplianceGuide>>(`/appliance-guides/${id}`),
+    updateApplianceGuide: (id: string, payload: Partial<CreateApplianceGuide>) =>
+      request<ItemResponse<ApplianceGuide>>(`/appliance-guides/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteApplianceGuide: (id: string) =>
+      request<{}>(`/appliance-guides/${id}`, { method: 'DELETE' }),
+
+    // TECHNICAL PLANS (Planos Técnicos)
+    listTechnicalPlans: (params?: { page?: number; pageSize?: number; home_id?: string }) =>
+      request<ListResponse<TechnicalPlan>>(`/technical-plans${q(params)}`),
+    createTechnicalPlan: (payload: CreateTechnicalPlan) =>
+      request<ItemResponse<TechnicalPlan>>(`/technical-plans`, { method: 'POST', body: JSON.stringify(payload) }),
+    getTechnicalPlanById: (id: string) =>
+      request<ItemResponse<TechnicalPlan>>(`/technical-plans/${id}`),
+    updateTechnicalPlan: (id: string, payload: Partial<CreateTechnicalPlan>) =>
+      request<ItemResponse<TechnicalPlan>>(`/technical-plans/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteTechnicalPlan: (id: string) =>
+      request<{}>(`/technical-plans/${id}`, { method: 'DELETE' }),
+
 
     // ===== ENDPOINTS ESPECIALES =====
     

@@ -4,20 +4,17 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Home, TechnicalPlan } from '@/lib/types';
+import { Home, CreateTechnicalPlan } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear un plano técnico
 const createTechnicalPlanSchema = z.object({
     home_id: z.string().min(1, 'Debes seleccionar una casa'),
-    room_id: z.string().optional(),
-    plan_type: z.string().min(1, 'El tipo de plano es requerido'),
     title: z.string().min(1, 'El título es requerido'),
     description: z.string().min(1, 'La descripción es requerida'),
     plan_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-    measurements: z.string().min(1, 'Las medidas son requeridas'),
-    materials_used: z.string().min(1, 'Los materiales son requeridos'),
-    construction_notes: z.string().optional(),
 });
 
 type CreateTechnicalPlanFormData = z.infer<typeof createTechnicalPlanSchema>;
@@ -27,6 +24,8 @@ export default function CreateTechnicalPlanPage() {
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
+
+    const apiClient = createApiClient(config.apiUrl);
 
     const {
         register,
@@ -38,29 +37,43 @@ export default function CreateTechnicalPlanPage() {
     });
 
     const onSubmit = async (data: CreateTechnicalPlanFormData) => {
+        console.log('🎯 onSubmit EJECUTÁNDOSE!');
+        console.log('📝 Datos del formulario:', data);
+
         setIsSubmitting(true);
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API
+            const apiData: CreateTechnicalPlan = {
+                home_id: data.home_id,
+                title: data.title,
+                description: data.description,
+                plan_file_url: data.plan_url || undefined,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await apiClient.createTechnicalPlan(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Plano técnico creado exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Plano técnico creado exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el plano técnico en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear plano técnico:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el plano técnico'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

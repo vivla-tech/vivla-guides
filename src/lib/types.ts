@@ -127,8 +127,8 @@ export interface ApplianceGuide {
   model: string;                 // Modelo
   brief_description: string;     // Descripción breve
   image_urls: string[];          // Array de URLs de imágenes (JSONB)
-  pdf_url: string;               // URL del PDF del manual
-  video_url: string;             // URL del video tutorial
+  pdf_url?: string;              // URL del PDF del manual (opcional)
+  video_url?: string;            // URL del video tutorial (opcional)
   quick_use_bullets: string;     // Puntos de uso rápido (TEXT)
   maintenance_bullets: string;   // Puntos de mantenimiento (TEXT)
   created_at: Date;
@@ -141,7 +141,7 @@ export interface TechnicalPlan {
   home_id: string;               // UUID de la casa
   title: string;                 // Título del plan
   description: string;            // Descripción
-  plan_file_url: string;         // URL del archivo del plan
+  plan_file_url?: string;         // URL del archivo del plan (opcional)
   created_at: Date;
   updated_at: Date;
 }
