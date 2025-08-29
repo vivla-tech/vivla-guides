@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Playbook, Room } from '@/lib/types';
+import { CreatePlaybook, Playbook, Room } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear un playbook
 const createPlaybookSchema = z.object({
@@ -25,6 +27,8 @@ export default function CreatePlaybookPage() {
 
     const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
 
+    const apiClient = createApiClient(config.apiUrl);
+
     const {
         register,
         handleSubmit,
@@ -39,25 +43,39 @@ export default function CreatePlaybookPage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API
+            const apiData: CreatePlaybook = {
+                room_id: data.room_id,
+                type: data.type,
+                title: data.title,
+                estimated_time: data.estimated_time,
+                tasks: data.tasks,
+                materials: data.materials,
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamada real a la API
+            const response = await apiClient.createPlaybook(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Playbook creado exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Playbook creado exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear el playbook en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear playbook:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear el playbook'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);

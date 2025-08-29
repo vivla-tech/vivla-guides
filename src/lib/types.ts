@@ -99,8 +99,8 @@ export interface StylingGuide {
   id: string;                    // UUID
   room_id: string;               // UUID de la habitación
   title: string;                 // Título de la guía
-  reference_photo_url: string;   // URL de la foto de referencia
-  qr_code_url: string;           // URL del código QR
+  reference_photo_url?: string;  // URL de la foto de referencia (opcional)
+  qr_code_url?: string;          // URL del código QR (opcional)
   image_urls: string[];          // Array de URLs de imágenes (JSONB)
   created_at: Date;
   updated_at: Date;
@@ -157,6 +157,10 @@ export type CreateCategory = Omit<Category, 'id' | 'created_at' | 'updated_at'>;
 export type CreateBrand = Omit<Brand, 'id' | 'created_at' | 'updated_at'>;
 export type CreateSupplier = Omit<Supplier, 'id' | 'created_at' | 'updated_at'>;
 export type CreateInventory = Omit<HomeInventory, 'id' | 'created_at' | 'updated_at'>;
+export type CreateStylingGuide = Omit<StylingGuide, 'id' | 'created_at' | 'updated_at'>;
+export type CreatePlaybook = Omit<Playbook, 'id' | 'created_at' | 'updated_at'>;
+export type CreateApplianceGuide = Omit<ApplianceGuide, 'id' | 'created_at' | 'updated_at'>;
+export type CreateTechnicalPlan = Omit<TechnicalPlan, 'id' | 'created_at' | 'updated_at'>;
 
 // ===== TIPOS DE RESPUESTA DE LA API =====
 

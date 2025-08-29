@@ -18,7 +18,11 @@ import {
   CreateBrand,
   CreateSupplier,
   CreateInventory,
-  HomeInventory
+  CreateStylingGuide,
+  HomeInventory,
+  StylingGuide,
+  Playbook,
+  CreatePlaybook
 } from './types';
 
 export type { ListMeta, ListResponse, ItemResponse, ErrorResponse };
@@ -150,6 +154,30 @@ export function createApiClient(baseUrl: string) {
       request<ItemResponse<Supplier>>(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteSupplier: (id: string) =>
       request<{}>(`/suppliers/${id}`, { method: 'DELETE' }),
+
+    // STYLING GUIDES (Guías de Estilo)
+    listStylingGuides: (params?: { page?: number; pageSize?: number; room_id?: string }) =>
+      request<ListResponse<StylingGuide>>(`/styling-guides${q(params)}`),
+    createStylingGuide: (payload: CreateStylingGuide) =>
+      request<ItemResponse<StylingGuide>>(`/styling-guides`, { method: 'POST', body: JSON.stringify(payload) }),
+    getStylingGuideById: (id: string) =>
+      request<ItemResponse<StylingGuide>>(`/styling-guides/${id}`),
+    updateStylingGuide: (id: string, payload: Partial<CreateStylingGuide>) =>
+      request<ItemResponse<StylingGuide>>(`/styling-guides/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deleteStylingGuide: (id: string) =>
+      request<{}>(`/styling-guides/${id}`, { method: 'DELETE' }),
+
+    // PLAYBOOKS (Playbooks)
+    listPlaybooks: (params?: { page?: number; pageSize?: number; room_id?: string }) =>
+      request<ListResponse<Playbook>>(`/playbooks${q(params)}`),
+    createPlaybook: (payload: CreatePlaybook) =>
+      request<ItemResponse<Playbook>>(`/playbooks`, { method: 'POST', body: JSON.stringify(payload) }),
+    getPlaybookById: (id: string) =>
+      request<ItemResponse<Playbook>>(`/playbooks/${id}`),
+    updatePlaybook: (id: string, payload: Partial<CreatePlaybook>) =>
+      request<ItemResponse<Playbook>>(`/playbooks/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+    deletePlaybook: (id: string) =>
+      request<{}>(`/playbooks/${id}`, { method: 'DELETE' }),
 
     // ===== ENDPOINTS ESPECIALES =====
     

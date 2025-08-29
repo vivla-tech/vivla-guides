@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Room, StylingGuide } from '@/lib/types';
+import { CreateStylingGuide, Room, StylingGuide } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una guía de estilo
 const createStylingGuideSchema = z.object({
@@ -24,6 +26,8 @@ export default function CreateStylingGuidePage() {
 
     const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
 
+    const apiClient = createApiClient(config.apiUrl);
+
     const {
         register,
         handleSubmit,
@@ -38,25 +42,38 @@ export default function CreateStylingGuidePage() {
         setSubmitMessage(null);
 
         try {
-            // Por ahora simulamos la llamada a la API
-            // TODO: Conectar con el backend real
-            console.log('Datos a enviar:', data);
+            // Preparar datos para la API
+            const apiData: CreateStylingGuide = {
+                room_id: data.room_id,
+                title: data.title,
+                reference_photo_url: data.reference_photo_url || undefined,
+                qr_code_url: data.qr_code_url || undefined,
+                image_urls: data.image_urls ? data.image_urls.split(',').map(url => url.trim()).filter(url => url.length > 0) : [],
+            };
 
-            // Simular delay de API
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Llamada real a la API
+            const response = await apiClient.createStylingGuide(apiData);
 
-            setSubmitMessage({
-                type: 'success',
-                message: 'Guía de estilo creada exitosamente!'
-            });
+            if (response.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Guía de estilo creada exitosamente!'
+                });
 
-            // Limpiar formulario
-            reset();
+                // Limpiar formulario
+                reset();
+            } else {
+                setSubmitMessage({
+                    type: 'error',
+                    message: 'Error al crear la guía de estilo en el servidor'
+                });
+            }
 
         } catch (error) {
+            console.error('Error al crear guía de estilo:', error);
             setSubmitMessage({
                 type: 'error',
-                message: error instanceof Error ? error.message : 'Error al crear la guía de estilo'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
