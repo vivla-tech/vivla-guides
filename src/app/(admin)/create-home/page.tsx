@@ -13,6 +13,7 @@ import { useApiData } from '@/hooks/useApiData';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { EditHomeForm } from '@/components/ui/EditHomeForm';
+import { DeleteConfirmation } from '@/components/ui/DeleteConfirmation';
 import { ColumnDef } from '@tanstack/react-table';
 
 // Esquema de validación para crear una casa
@@ -41,6 +42,10 @@ export default function CreateHomePage() {
     const [editingHome, setEditingHome] = useState<Home | null>(null);
     const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
 
+    // Estados para eliminación
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deletingHome, setDeletingHome] = useState<Home | null>(null);
+
     // Cargar casas existentes con paginación del servidor
     const homesParams = useMemo(() => ({
         page: currentPage,
@@ -56,6 +61,12 @@ export default function CreateHomePage() {
         setEditingHome(home);
         setEditImageUrls(home.main_image ? [home.main_image] : []);
         setIsEditing(true);
+    };
+
+    // Función para manejar la eliminación de una casa
+    const handleDeleteHome = (home: Home) => {
+        setDeletingHome(home);
+        setIsDeleting(true);
     };
 
     // Definir columnas para la tabla de casas
@@ -133,7 +144,7 @@ export default function CreateHomePage() {
         {
             id: 'actions',
             header: 'Acciones',
-            size: 150,
+            size: 200,
             cell: ({ row }) => {
                 const home = row.original;
                 return (
@@ -143,6 +154,12 @@ export default function CreateHomePage() {
                             className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Editar
+                        </button>
+                        <button
+                            onClick={() => handleDeleteHome(home)}
+                            className="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                            Eliminar
                         </button>
                     </div>
                 );
@@ -328,6 +345,32 @@ export default function CreateHomePage() {
                                 setIsEditing(false);
                                 setEditingHome(null);
                                 setEditImageUrls([]);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
+
+                {/* Modal de eliminación */}
+                <Modal
+                    isOpen={isDeleting}
+                    onClose={() => {
+                        setIsDeleting(false);
+                        setDeletingHome(null);
+                    }}
+                    title="Confirmar Eliminación"
+                >
+                    {deletingHome && (
+                        <DeleteConfirmation
+                            home={deletingHome}
+                            onClose={() => {
+                                setIsDeleting(false);
+                                setDeletingHome(null);
+                            }}
+                            onSuccess={() => {
+                                setIsDeleting(false);
+                                setDeletingHome(null);
                                 // Recargar datos
                                 window.location.reload();
                             }}

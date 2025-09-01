@@ -40,9 +40,19 @@ export function createApiClient(baseUrl: string) {
     
     let body: unknown;
     try {
-      body = await res.json();
+      // Para HTTP 204 (No Content), no hay body para parsear
+      if (res.status === 204) {
+        body = {};
+      } else {
+        body = await res.json();
+      }
     } catch {
       body = { success: false };
+    }
+    
+    // HTTP 204 (No Content) es exitoso para eliminaciones
+    if (res.status === 204) {
+      return {} as T;
     }
     
     if (!res.ok || (body as { success?: boolean })?.success === false) {
