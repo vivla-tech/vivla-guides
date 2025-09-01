@@ -199,7 +199,7 @@ export function DataTable<TData, TValue>({
                                 }}
                                 className="text-gray-700 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                {[20, 50, 100, 200].map((size) => (
+                                {[10, 20, 50, 100, 200].map((size) => (
                                     <option key={size} value={size}>
                                         {size}
                                     </option>

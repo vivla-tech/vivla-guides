@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
 import { DataTable } from '@/components/ui/DataTable';
+import { Modal } from '@/components/ui/Modal';
+import { EditHomeForm } from '@/components/ui/EditHomeForm';
 import { ColumnDef } from '@tanstack/react-table';
 
 // Esquema de validación para crear una casa
@@ -23,79 +25,7 @@ const createHomeSchema = z.object({
 
 type CreateHomeFormData = z.infer<typeof createHomeSchema>;
 
-// Definir columnas para la tabla de casas
-const columns: ColumnDef<Home>[] = [
-    {
-        accessorKey: 'main_image',
-        header: 'Imagen',
-        size: 100,
-        cell: ({ row }) => {
-            const image = row.getValue('main_image') as string;
-            return image ? (
-                <div className="flex items-center justify-center">
-                    <img
-                        src={image}
-                        alt={row.getValue('name') as string}
-                        className="w-16 h-16 object-cover rounded-lg shadow-sm"
-                    />
-                </div>
-            ) : (
-                <div className="flex items-center justify-center">
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">Sin imagen</span>
-                    </div>
-                </div>
-            );
-        },
-    },
-    {
-        accessorKey: 'name',
-        header: 'Nombre',
-        size: 200,
-        cell: ({ row }) => (
-            <div className="font-semibold text-gray-900 text-base">
-                {row.getValue('name')}
-            </div>
-        ),
-    },
-    {
-        accessorKey: 'destination',
-        header: 'Destino',
-        size: 150,
-        cell: ({ row }) => {
-            const destination = row.getValue('destination') as string;
-            return (
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${destination === 'vacacional' ? 'bg-blue-100 text-blue-800' :
-                    destination === 'residencial' ? 'bg-green-100 text-green-800' :
-                        destination === 'comercial' ? 'bg-purple-100 text-purple-800' :
-                            'bg-gray-100 text-gray-800'
-                    }`}>
-                    {destination}
-                </span>
-            );
-        },
-    },
-    {
-        accessorKey: 'address',
-        header: 'Dirección',
-        size: 300,
-        cell: ({ row }) => (
-            <div className="text-gray-700 leading-relaxed">
-                {row.getValue('address')}
-            </div>
-        ),
-    },
-    {
-        accessorKey: 'id',
-        header: 'ID',
-        size: 200,
-        cell: ({ row }) => (
-            <div className="text-xs text-gray-500 font-mono">
-                {row.getValue('id')}
-            </div>
-        ),
-    },
-];
+
 
 export default function CreateHomePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,7 +34,12 @@ export default function CreateHomePage() {
 
     // Estados para paginación del servidor
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Estados para edición
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingHome, setEditingHome] = useState<Home | null>(null);
+    const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
 
     // Cargar casas existentes con paginación del servidor
     const homesParams = useMemo(() => ({
@@ -115,6 +50,105 @@ export default function CreateHomePage() {
     const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes', homesParams);
 
     const apiClient = createApiClient(config.apiUrl);
+
+    // Función para manejar la edición de una casa
+    const handleEditHome = (home: Home) => {
+        setEditingHome(home);
+        setEditImageUrls(home.main_image ? [home.main_image] : []);
+        setIsEditing(true);
+    };
+
+    // Definir columnas para la tabla de casas
+    const columns: ColumnDef<Home>[] = [
+        {
+            accessorKey: 'main_image',
+            header: 'Imagen',
+            size: 100,
+            cell: ({ row }) => {
+                const image = row.getValue('main_image') as string;
+                return image ? (
+                    <div className="flex items-center justify-center">
+                        <img
+                            src={image}
+                            alt={row.getValue('name') as string}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                        />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">Sin imagen</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: 'name',
+            header: 'Nombre',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="font-semibold text-gray-900 text-base">
+                    {row.getValue('name')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'destination',
+            header: 'Destino',
+            size: 150,
+            cell: ({ row }) => {
+                const destination = row.getValue('destination') as string;
+                return (
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${destination === 'vacacional' ? 'bg-blue-100 text-blue-800' :
+                        destination === 'residencial' ? 'bg-green-100 text-green-800' :
+                            destination === 'comercial' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                        }`}>
+                        {destination}
+                    </span>
+                );
+            },
+        },
+        {
+            accessorKey: 'address',
+            header: 'Dirección',
+            size: 300,
+            cell: ({ row }) => (
+                <div className="text-gray-700 leading-relaxed">
+                    {row.getValue('address')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'id',
+            header: 'ID',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="text-xs text-gray-500 font-mono">
+                    {row.getValue('id')}
+                </div>
+            ),
+        },
+        {
+            id: 'actions',
+            header: 'Acciones',
+            size: 150,
+            cell: ({ row }) => {
+                const home = row.original;
+                return (
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => handleEditHome(home)}
+                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Editar
+                        </button>
+                    </div>
+                );
+            },
+        },
+    ];
 
     const {
         register,
@@ -269,6 +303,37 @@ export default function CreateHomePage() {
                     onPageChange={setCurrentPage}
                     onPageSizeChange={setPageSize}
                 />
+
+                {/* Modal de edición */}
+                <Modal
+                    isOpen={isEditing}
+                    onClose={() => {
+                        setIsEditing(false);
+                        setEditingHome(null);
+                        setEditImageUrls([]);
+                    }}
+                    title="Editar Casa"
+                >
+                    {editingHome && (
+                        <EditHomeForm
+                            home={editingHome}
+                            imageUrls={editImageUrls}
+                            onImageUrlsChange={setEditImageUrls}
+                            onClose={() => {
+                                setIsEditing(false);
+                                setEditingHome(null);
+                                setEditImageUrls([]);
+                            }}
+                            onSuccess={() => {
+                                setIsEditing(false);
+                                setEditingHome(null);
+                                setEditImageUrls([]);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
             </div>
         </div>
     );
