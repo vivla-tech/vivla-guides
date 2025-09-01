@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,8 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const apiClient = createApiClient(config.apiUrl);
+
+
 
     const {
         register,
@@ -133,6 +135,7 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
                 maxFiles={1}
                 maxSize={5}
                 basePath="homes"
+                existingUrls={useMemo(() => home.main_image ? [home.main_image] : [], [home.main_image])}
             />
 
             {/* Mensaje de estado */}

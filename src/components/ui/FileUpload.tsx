@@ -12,6 +12,7 @@ interface FileUploadProps {
     disabled?: boolean;
     className?: string;
     basePath?: string; // Carpeta en Firebase Storage
+    existingUrls?: string[]; // URLs existentes para mostrar
 }
 
 interface FileWithPreview {
@@ -30,7 +31,8 @@ export function FileUpload({
     error,
     disabled = false,
     className = '',
-    basePath = 'uploads'
+    basePath = 'uploads',
+    existingUrls = []
 }: FileUploadProps) {
     const [files, setFiles] = useState<FileWithPreview[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -38,7 +40,7 @@ export function FileUpload({
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
     const [uploadMessage, setUploadMessage] = useState('');
-    const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+    const [uploadedUrls, setUploadedUrls] = useState<string[]>(existingUrls);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Validar archivo
@@ -126,6 +128,32 @@ export function FileUpload({
             const updated = prev.filter(f => f.id !== id);
             return updated;
         });
+    };
+
+    // Eliminar una URL específica
+    const removeUrl = async (urlToRemove: string) => {
+        try {
+            // Mostrar estado de limpieza
+            setUploadStatus('uploading');
+            setUploadMessage('Eliminando archivo del servidor...');
+
+            // Eliminar archivo del Firebase Storage
+            await deleteMultipleFiles([urlToRemove]);
+
+            // Actualizar estado local
+            const newUrls = uploadedUrls.filter(url => url !== urlToRemove);
+            setUploadedUrls(newUrls);
+            onUrlsChange(newUrls);
+
+            // Mostrar confirmación
+            setUploadStatus('success');
+            setUploadMessage('Archivo eliminado del servidor');
+
+        } catch (error) {
+            console.error('Error al eliminar archivo:', error);
+            setUploadStatus('error');
+            setUploadMessage('Error al eliminar archivo del servidor');
+        }
     };
 
     // Limpiar archivos subidos (del storage y del estado)
@@ -366,26 +394,52 @@ export function FileUpload({
             {/* Uploaded files summary - FUERA de la condición de files */}
             {uploadedUrls.length > 0 && (
                 <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-medium text-gray-700">
-                            Archivos subidos ({uploadedUrls.length})
+                            Archivos ({uploadedUrls.length})
                         </h4>
-                        <button
-                            type="button"
-                            onClick={clearUploadedFiles}
-                            disabled={isUploading}
-                            className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isUploading ? 'Eliminando...' : 'Quitar'}
-                        </button>
+                        {uploadedUrls.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={clearUploadedFiles}
+                                disabled={isUploading}
+                                className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isUploading ? 'Eliminando...' : 'Quitar todos'}
+                            </button>
+                        )}
                     </div>
-                    <div className="space-y-1">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                         {uploadedUrls.map((url, index) => (
-                            <div key={index} className="flex items-center space-x-2 text-xs text-gray-600">
-                                <span className="text-green-500">✓</span>
-                                <span className="truncate">
+                            <div key={index} className="relative group">
+                                {/* Imagen */}
+                                <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                                    <img
+                                        src={url}
+                                        alt={`Archivo ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">Error</div>';
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Botón eliminar */}
+                                <button
+                                    type="button"
+                                    onClick={() => removeUrl(url)}
+                                    disabled={isUploading}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                >
+                                    ×
+                                </button>
+
+                                {/* Nombre del archivo */}
+                                <p className="text-xs text-gray-600 mt-1 truncate">
                                     {url.split('/').pop() || `Archivo ${index + 1}`}
-                                </span>
+                                </p>
                             </div>
                         ))}
                     </div>
