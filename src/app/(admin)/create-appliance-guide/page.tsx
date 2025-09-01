@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ApplianceGuide, Brand, CreateApplianceGuide } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -98,176 +99,108 @@ export default function CreateApplianceGuidePage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre del equipo */}
-                        <div>
-                            <label htmlFor="equipment_name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre del Equipo *
-                            </label>
-                            <input
-                                {...register('equipment_name')}
-                                type="text"
-                                id="equipment_name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.equipment_name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Nevera Samsung, Lavavajillas Bosch, Horno Miele..."
-                            />
-                            {errors.equipment_name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.equipment_name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre del Equipo"
+                            register={register('equipment_name')}
+                            error={errors.equipment_name?.message}
+                            placeholder="Ej: Lavadora Samsung, Nevera LG..."
+                            required
+                        />
 
                         {/* Marca */}
-                        <div>
-                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Marca *
-                            </label>
-                            <select
-                                {...register('brand_id')}
-                                id="brand_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.brand_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una marca</option>
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.id}>
-                                        {brand.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.brand_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.brand_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Marca"
+                            register={register('brand_id')}
+                            error={errors.brand_id?.message}
+                            placeholder="Selecciona una marca"
+                            required
+                        >
+                            {brands.map((brand) => (
+                                <option key={brand.id} value={brand.id}>
+                                    {brand.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Modelo */}
-                        <div>
-                            <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
-                                Modelo *
-                            </label>
-                            <input
-                                {...register('model')}
-                                type="text"
-                                id="model"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.model ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: RF23M8070SG, SMS2ITW01E, H 2265-1 B..."
-                            />
-                            {errors.model && (
-                                <p className="mt-1 text-sm text-red-600">{errors.model.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Modelo"
+                            register={register('model')}
+                            error={errors.model?.message}
+                            placeholder="Ej: WF-1000XM4, Galaxy S21..."
+                            required
+                        />
 
                         {/* Descripción breve */}
-                        <div>
-                            <label htmlFor="brief_description" className="block text-sm font-medium text-gray-700 mb-2">
-                                Descripción Breve *
-                            </label>
-                            <textarea
-                                {...register('brief_description')}
-                                id="brief_description"
-                                rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.brief_description ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Descripción breve del equipo y sus características principales..."
-                            />
-                            {errors.brief_description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.brief_description.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Descripción Breve"
+                            register={register('brief_description')}
+                            error={errors.brief_description?.message}
+                            placeholder="Descripción general del equipo y sus características principales..."
+                            rows={3}
+                            required
+                        />
 
                         {/* URLs de imágenes */}
-                        <div>
-                            <label htmlFor="image_urls" className="block text-sm font-medium text-gray-700 mb-2">
-                                URLs de Imágenes (separadas por comas)
-                            </label>
-                            <textarea
-                                {...register('image_urls')}
-                                id="image_urls"
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg..."
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                Imágenes del equipo, controles, pantallas, etc.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="URLs de Imágenes (separadas por comas)"
+                            register={register('image_urls')}
+                            error={errors.image_urls?.message}
+                            placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
+                            rows={3}
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Imágenes del equipo, controles, pantallas, etc.
+                        </p>
 
                         {/* URL del PDF del manual */}
-                        <div>
-                            <label htmlFor="pdf_url" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL del PDF del Manual
-                            </label>
-                            <input
-                                {...register('pdf_url')}
-                                type="url"
-                                id="pdf_url"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.pdf_url ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://ejemplo.com/manual.pdf"
-                            />
-                            {errors.pdf_url && (
-                                <p className="mt-1 text-sm text-red-600">{errors.pdf_url.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL del PDF del Manual"
+                            register={register('pdf_url')}
+                            error={errors.pdf_url?.message}
+                            placeholder="https://www.marca.com/manual.pdf"
+                        />
 
                         {/* URL del video tutorial */}
-                        <div>
-                            <label htmlFor="video_url" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL del Video Tutorial
-                            </label>
-                            <input
-                                {...register('video_url')}
-                                type="url"
-                                id="video_url"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.video_url ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://www.youtube.com/watch?v=..."
-                            />
-                            {errors.video_url && (
-                                <p className="mt-1 text-sm text-red-600">{errors.video_url.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL del Video Tutorial"
+                            register={register('video_url')}
+                            error={errors.video_url?.message}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                        />
 
                         {/* Puntos de uso rápido */}
-                        <div>
-                            <label htmlFor="quick_use_bullets" className="block text-sm font-medium text-gray-700 mb-2">
-                                Puntos de Uso Rápido *
-                            </label>
-                            <textarea
-                                {...register('quick_use_bullets')}
-                                id="quick_use_bullets"
-                                rows={5}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.quick_use_bullets ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Lista de puntos clave para usar el equipo rápidamente..."
-                            />
-                            {errors.quick_use_bullets && (
-                                <p className="mt-1 text-sm text-red-600">{errors.quick_use_bullets.message}</p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-500">
-                                Puntos clave para uso básico del equipo.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Puntos de Uso Rápido"
+                            register={register('quick_use_bullets')}
+                            error={errors.quick_use_bullets?.message}
+                            placeholder="• Encender el equipo\n• Seleccionar programa\n• Iniciar ciclo..."
+                            rows={3}
+                            required
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Puntos clave para uso básico del equipo.
+                        </p>
 
                         {/* Puntos de mantenimiento */}
-                        <div>
-                            <label htmlFor="maintenance_bullets" className="block text-sm font-medium text-gray-700 mb-2">
-                                Puntos de Mantenimiento *
-                            </label>
-                            <textarea
-                                {...register('maintenance_bullets')}
-                                id="maintenance_bullets"
-                                rows={5}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.maintenance_bullets ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Lista de tareas de mantenimiento y limpieza..."
-                            />
-                            {errors.maintenance_bullets && (
-                                <p className="mt-1 text-sm text-red-600">{errors.maintenance_bullets.message}</p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-500">
-                                Tareas de mantenimiento, limpieza y cuidado del equipo.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Puntos de Mantenimiento"
+                            register={register('maintenance_bullets')}
+                            error={errors.maintenance_bullets?.message}
+                            placeholder="• Limpiar filtros mensualmente\n• Revisar conexiones\n• Calibrar sensores..."
+                            rows={3}
+                            required
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Tareas de mantenimiento, limpieza y cuidado del equipo.
+                        </p>
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateBrand } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -80,58 +81,33 @@ export default function CreateBrandPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre de la marca */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre de la Marca *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Samsung, IKEA, Philips..."
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre de la Marca"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Samsung, Apple, IKEA..."
+                            required
+                        />
 
                         {/* Sitio web */}
-                        <div>
-                            <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                                Sitio Web
-                            </label>
-                            <input
-                                {...register('website')}
-                                type="url"
-                                id="website"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.website ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://www.ejemplo.com"
-                            />
-                            {errors.website && (
-                                <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="Sitio Web"
+                            register={register('website')}
+                            error={errors.website?.message}
+                            placeholder="https://www.marca.com"
+                        />
 
                         {/* Información de contacto */}
-                        <div>
-                            <label htmlFor="contact_info" className="block text-sm font-medium text-gray-700 mb-2">
-                                Información de Contacto *
-                            </label>
-                            <textarea
-                                {...register('contact_info')}
-                                id="contact_info"
-                                rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.contact_info ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Email, teléfono, dirección de contacto..."
-                            />
-                            {errors.contact_info && (
-                                <p className="mt-1 text-sm text-red-600">{errors.contact_info.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Información de Contacto"
+                            register={register('contact_info')}
+                            error={errors.contact_info?.message}
+                            placeholder="Email: contacto@marca.com\nTeléfono: +34 900 123 456\nDirección: Calle Principal 123..."
+                            rows={3}
+                            required
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

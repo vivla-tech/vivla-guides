@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateRoomType } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -75,22 +76,13 @@ export default function CreateRoomTypePage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre del tipo de habitación */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre del Tipo *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Dormitorio, Baño, Cocina, Salón..."
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre del Tipo"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Dormitorio, Cocina, Baño, Salón..."
+                            required
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Home, CreateTechnicalPlan } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -90,82 +91,49 @@ export default function CreateTechnicalPlanPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Casa */}
-                        <div>
-                            <label htmlFor="home_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Casa *
-                            </label>
-                            <select
-                                {...register('home_id')}
-                                id="home_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.home_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una casa</option>
-                                {homes.map((home) => (
-                                    <option key={home.id} value={home.id}>
-                                        {home.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.home_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.home_id.message}</p>
-                            )}
-                        </div>
-
+                        <Input
+                            type="select"
+                            label="Casa"
+                            register={register('home_id')}
+                            error={errors.home_id?.message}
+                            placeholder="Selecciona una casa"
+                            required
+                        >
+                            {homes.map((home) => (
+                                <option key={home.id} value={home.id}>
+                                    {home.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Título */}
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                Título del Plano *
-                            </label>
-                            <input
-                                {...register('title')}
-                                type="text"
-                                id="title"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.title ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Planta Principal, Alzado Norte, Detalle de Ventana..."
-                            />
-                            {errors.title && (
-                                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Título del Plano"
+                            register={register('title')}
+                            error={errors.title?.message}
+                            placeholder="Ej: Plano de Instalación Eléctrica, Plano de Fontanería..."
+                            required
+                        />
 
                         {/* Descripción */}
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                Descripción del Plano *
-                            </label>
-                            <textarea
-                                {...register('description')}
-                                id="description"
-                                rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Describe qué muestra este plano, su escala, orientación..."
-                            />
-                            {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Descripción del Plano"
+                            register={register('description')}
+                            error={errors.description?.message}
+                            placeholder="Descripción detallada del plano técnico, qué incluye, escala, etc..."
+                            rows={3}
+                            required
+                        />
 
                         {/* URL del plano */}
-                        <div>
-                            <label htmlFor="plan_url" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL del Plano (PDF, DWG, Imagen)
-                            </label>
-                            <input
-                                {...register('plan_url')}
-                                type="url"
-                                id="plan_url"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.plan_url ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://ejemplo.com/plano.pdf o https://ejemplo.com/plano.dwg"
-                            />
-                            {errors.plan_url && (
-                                <p className="mt-1 text-sm text-red-600">{errors.plan_url.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL del Plano (PDF, DWG, Imagen)"
+                            register={register('plan_url')}
+                            error={errors.plan_url?.message}
+                            placeholder="https://www.dropbox.com/plano.pdf"
+                        />
 
 
                         {/* Mensaje de estado */}

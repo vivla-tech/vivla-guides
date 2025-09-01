@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Amenity, CreateInventory, Home, HomeInventory, Room, Supplier } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -104,213 +105,137 @@ export default function CreateInventoryPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Casa */}
-                        <div>
-                            <label htmlFor="home_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Casa *
-                            </label>
-                            <select
-                                {...register('home_id')}
-                                id="home_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.home_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una casa</option>
-                                {homes.map((home) => (
-                                    <option key={home.id} value={home.id}>
-                                        {home.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.home_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.home_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Casa"
+                            register={register('home_id')}
+                            error={errors.home_id?.message}
+                            placeholder="Selecciona una casa"
+                            required
+                        >
+                            {homes.map((home) => (
+                                <option key={home.id} value={home.id}>
+                                    {home.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Amenity */}
-                        <div>
-                            <label htmlFor="amenity_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Producto/Amenity *
-                            </label>
-                            <select
-                                {...register('amenity_id')}
-                                id="amenity_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.amenity_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un producto</option>
-                                {amenities.map((amenity) => (
-                                    <option key={amenity.id} value={amenity.id}>
-                                        {amenity.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.amenity_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.amenity_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Producto/Amenity"
+                            register={register('amenity_id')}
+                            error={errors.amenity_id?.message}
+                            placeholder="Selecciona un producto"
+                            required
+                        >
+                            {amenities.map((amenity) => (
+                                <option key={amenity.id} value={amenity.id}>
+                                    {amenity.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Habitación (opcional) */}
-                        <div>
-                            <label htmlFor="room_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Habitación (opcional)
-                            </label>
-                            <select
-                                {...register('room_id')}
-                                id="room_id"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="">Sin asignar a habitación específica</option>
-                                {rooms.map((room) => (
-                                    <option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <Input
+                            type="select"
+                            label="Habitación (opcional)"
+                            register={register('room_id')}
+                            error={errors.room_id?.message}
+                            placeholder="Sin asignar a habitación específica"
+                        >
+                            {rooms.map((room) => (
+                                <option key={room.id} value={room.id}>
+                                    {room.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Cantidad */}
-                        <div>
-                            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                                Cantidad *
-                            </label>
-                            <input
-                                {...register('quantity', { valueAsNumber: true })}
-                                type="number"
-                                min="1"
-                                id="quantity"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.quantity ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="1"
-                            />
-                            {errors.quantity && (
-                                <p className="mt-1 text-sm text-red-600">{errors.quantity.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="number"
+                            label="Cantidad"
+                            register={register('quantity', { valueAsNumber: true })}
+                            error={errors.quantity?.message}
+                            placeholder="1"
+                            min={1}
+                            required
+                        />
 
                         {/* Detalles de ubicación */}
-                        <div>
-                            <label htmlFor="location_details" className="block text-sm font-medium text-gray-700 mb-2">
-                                Detalles de Ubicación *
-                            </label>
-                            <textarea
-                                {...register('location_details')}
-                                id="location_details"
-                                rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.location_details ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Armario del dormitorio, estante de la cocina, garaje..."
-                            />
-                            {errors.location_details && (
-                                <p className="mt-1 text-sm text-red-600">{errors.location_details.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Detalles de Ubicación"
+                            register={register('location_details')}
+                            error={errors.location_details?.message}
+                            placeholder="Ej: Armario del dormitorio, estante de la cocina, garaje..."
+                            rows={3}
+                            required
+                        />
 
                         {/* Umbral mínimo */}
-                        <div>
-                            <label htmlFor="minimum_threshold" className="block text-sm font-medium text-gray-700 mb-2">
-                                Umbral Mínimo de Stock
-                            </label>
-                            <input
-                                {...register('minimum_threshold', { valueAsNumber: true })}
-                                type="number"
-                                min="0"
-                                id="minimum_threshold"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.minimum_threshold ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="0"
-                            />
-                            {errors.minimum_threshold && (
-                                <p className="mt-1 text-sm text-red-600">{errors.minimum_threshold.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="number"
+                            label="Umbral Mínimo de Stock"
+                            register={register('minimum_threshold', { valueAsNumber: true })}
+                            error={errors.minimum_threshold?.message}
+                            placeholder="0"
+                            min={0}
+                        />
 
                         {/* Proveedor */}
-                        <div>
-                            <label htmlFor="supplier_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Proveedor *
-                            </label>
-                            <select
-                                {...register('supplier_id')}
-                                id="supplier_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.supplier_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un proveedor</option>
-                                {suppliers.map((supplier) => (
-                                    <option key={supplier.id} value={supplier.id}>
-                                        {supplier.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.supplier_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.supplier_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Proveedor"
+                            register={register('supplier_id')}
+                            error={errors.supplier_id?.message}
+                            placeholder="Selecciona un proveedor"
+                            required
+                        >
+                            {suppliers.map((supplier) => (
+                                <option key={supplier.id} value={supplier.id}>
+                                    {supplier.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Enlace de compra */}
-                        <div>
-                            <label htmlFor="purchase_link" className="block text-sm font-medium text-gray-700 mb-2">
-                                Enlace de Compra
-                            </label>
-                            <input
-                                {...register('purchase_link')}
-                                type="url"
-                                id="purchase_link"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.purchase_link ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://www.proveedor.com/producto"
-                            />
-                            {errors.purchase_link && (
-                                <p className="mt-1 text-sm text-red-600">{errors.purchase_link.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="Enlace de Compra"
+                            register={register('purchase_link')}
+                            error={errors.purchase_link?.message}
+                            placeholder="https://www.proveedor.com/producto"
+                        />
 
                         {/* Precio de compra */}
-                        <div>
-                            <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700 mb-2">
-                                Precio de Compra (€)
-                            </label>
-                            <input
-                                {...register('purchase_price', { valueAsNumber: true })}
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                id="purchase_price"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.purchase_price ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="0.00"
-                            />
-                            {errors.purchase_price && (
-                                <p className="mt-1 text-sm text-red-600">{errors.purchase_price.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="number"
+                            label="Precio de Compra (€)"
+                            register={register('purchase_price', { valueAsNumber: true })}
+                            error={errors.purchase_price?.message}
+                            placeholder="0.00"
+                            min={0}
+                            step="0.01"
+                        />
 
                         {/* Fecha de último reabastecimiento */}
-                        <div>
-                            <label htmlFor="last_restocked_date" className="block text-sm font-medium text-gray-700 mb-2">
-                                Fecha del Último Reabastecimiento
-                            </label>
-                            <input
-                                {...register('last_restocked_date')}
-                                type="date"
-                                id="last_restocked_date"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
+                        <Input
+                            type="date"
+                            label="Fecha del Último Reabastecimiento"
+                            register={register('last_restocked_date')}
+                            error={errors.last_restocked_date?.message}
+                        />
 
                         {/* Notas */}
-                        <div>
-                            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                                Notas Adicionales
-                            </label>
-                            <textarea
-                                {...register('notes')}
-                                id="notes"
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Información adicional, instrucciones especiales..."
-                            />
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Notas Adicionales"
+                            register={register('notes')}
+                            error={errors.notes?.message}
+                            placeholder="Notas adicionales sobre el inventario..."
+                            rows={3}
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

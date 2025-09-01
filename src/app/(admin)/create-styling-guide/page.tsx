@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateStylingGuide, Room, StylingGuide } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -90,98 +91,60 @@ export default function CreateStylingGuidePage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Habitación */}
-                        <div>
-                            <label htmlFor="room_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Habitación *
-                            </label>
-                            <select
-                                {...register('room_id')}
-                                id="room_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.room_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una habitación</option>
-                                {rooms.map((room) => (
-                                    <option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.room_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.room_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Habitación"
+                            register={register('room_id')}
+                            error={errors.room_id?.message}
+                            placeholder="Selecciona una habitación"
+                            required
+                        >
+                            {rooms.map((room) => (
+                                <option key={room.id} value={room.id}>
+                                    {room.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Título */}
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                Título de la Guía *
-                            </label>
-                            <input
-                                {...register('title')}
-                                type="text"
-                                id="title"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.title ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Estilo Mediterráneo, Minimalista Moderno, Rústico Elegante..."
-                            />
-                            {errors.title && (
-                                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Título de la Guía"
+                            register={register('title')}
+                            error={errors.title?.message}
+                            placeholder="Ej: Estilo Nórdico, Decoración Minimalista, Estilo Industrial..."
+                            required
+                        />
 
                         {/* Foto de referencia */}
-                        <div>
-                            <label htmlFor="reference_photo_url" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL de la Foto de Referencia
-                            </label>
-                            <input
-                                {...register('reference_photo_url')}
-                                type="url"
-                                id="reference_photo_url"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.reference_photo_url ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://ejemplo.com/foto-referencia.jpg"
-                            />
-                            {errors.reference_photo_url && (
-                                <p className="mt-1 text-sm text-red-600">{errors.reference_photo_url.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL de la Foto de Referencia"
+                            register={register('reference_photo_url')}
+                            error={errors.reference_photo_url?.message}
+                            placeholder="https://www.pinterest.com/pin/ejemplo.jpg"
+                        />
 
                         {/* Código QR */}
-                        <div>
-                            <label htmlFor="qr_code_url" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL del Código QR
-                            </label>
-                            <input
-                                {...register('qr_code_url')}
-                                type="url"
-                                id="qr_code_url"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.qr_code_url ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://ejemplo.com/qr-code.png"
-                            />
-                            {errors.qr_code_url && (
-                                <p className="mt-1 text-sm text-red-600">{errors.qr_code_url.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL del Código QR"
+                            register={register('qr_code_url')}
+                            error={errors.qr_code_url?.message}
+                            placeholder="https://qr-code-generator.com/ejemplo"
+                        />
 
                         {/* URLs de imágenes */}
-                        <div>
-                            <label htmlFor="image_urls" className="block text-sm font-medium text-gray-700 mb-2">
-                                URLs de Imágenes (separadas por comas)
-                            </label>
-                            <textarea
-                                {...register('image_urls')}
-                                id="image_urls"
-                                rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg, https://ejemplo.com/imagen3.jpg..."
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                Separa múltiples URLs con comas. Estas imágenes mostrarán el estilo de la habitación.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="URLs de Imágenes (separadas por comas)"
+                            register={register('image_urls')}
+                            error={errors.image_urls?.message}
+                            placeholder="https://ejemplo1.com/imagen1.jpg, https://ejemplo2.com/imagen2.jpg"
+                            rows={3}
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Separa múltiples URLs con comas. Estas imágenes mostrarán el estilo de la habitación.
+                        </p>
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

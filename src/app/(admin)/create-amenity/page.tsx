@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateAmenity, Category, Brand } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -100,171 +101,106 @@ export default function CreateAmenityPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre del amenity */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre del Producto *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Nevera Samsung, Sofá IKEA..."
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre del Producto"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Nevera Samsung, Sofá IKEA..."
+                            required
+                        />
 
                         {/* Categoría */}
-                        <div>
-                            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Categoría *
-                            </label>
-                            <select
-                                {...register('category_id')}
-                                id="category_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.category_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                disabled={isLoadingCategories}
-                            >
-                                <option value="">
-                                    {isLoadingCategories ? 'Cargando categorías...' : 'Selecciona una categoría'}
+                        <Input
+                            type="select"
+                            label="Categoría"
+                            register={register('category_id')}
+                            error={errors.category_id?.message}
+                            placeholder="Selecciona una categoría"
+                            disabled={isLoadingCategories}
+                            required
+                        >
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
                                 </option>
-                                {categories.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.category_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.category_id.message}</p>
-                            )}
-                            {isLoadingCategories && (
-                                <p className="mt-1 text-sm text-gray-500">Cargando categorías desde la base de datos...</p>
-                            )}
-                        </div>
+                            ))}
+                        </Input>
+                        {isLoadingCategories && (
+                            <p className="mt-1 text-sm text-gray-500">Cargando categorías desde la base de datos...</p>
+                        )}
 
                         {/* Marca */}
-                        <div>
-                            <label htmlFor="brand_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Marca *
-                            </label>
-                            <select
-                                {...register('brand_id')}
-                                id="brand_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.brand_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                disabled={isLoadingBrands}
-                            >
-                                <option value="">
-                                    {isLoadingBrands ? 'Cargando marcas...' : 'Selecciona una marca'}
+                        <Input
+                            type="select"
+                            label="Marca"
+                            register={register('brand_id')}
+                            error={errors.brand_id?.message}
+                            placeholder="Selecciona una marca"
+                            disabled={isLoadingBrands}
+                            required
+                        >
+                            {brands.map((brand) => (
+                                <option key={brand.id} value={brand.id}>
+                                    {brand.name}
                                 </option>
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.id}>
-                                        {brand.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.brand_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.brand_id.message}</p>
-                            )}
-                            {isLoadingBrands && (
-                                <p className="mt-1 text-sm text-gray-500">Cargando marcas desde la base de datos...</p>
-                            )}
-                        </div>
+                            ))}
+                        </Input>
+                        {isLoadingBrands && (
+                            <p className="mt-1 text-sm text-gray-500">Cargando marcas desde la base de datos...</p>
+                        )}
 
                         {/* Referencia */}
-                        <div>
-                            <label htmlFor="reference" className="block text-sm font-medium text-gray-700 mb-2">
-                                Referencia del Producto *
-                            </label>
-                            <input
-                                {...register('reference')}
-                                type="text"
-                                id="reference"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.reference ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: RF23M8070SG, EKENÄSET..."
-                            />
-                            {errors.reference && (
-                                <p className="mt-1 text-sm text-red-600">{errors.reference.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Referencia del Producto"
+                            register={register('reference')}
+                            error={errors.reference?.message}
+                            placeholder="Ej: RF23M8070SG, EKENÄSET..."
+                            required
+                        />
 
                         {/* Modelo */}
-                        <div>
-                            <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
-                                Modelo *
-                            </label>
-                            <input
-                                {...register('model')}
-                                type="text"
-                                id="model"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.model ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Family Hub, EKENÄSET..."
-                            />
-                            {errors.model && (
-                                <p className="mt-1 text-sm text-red-600">{errors.model.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Modelo"
+                            register={register('model')}
+                            error={errors.model?.message}
+                            placeholder="Ej: Family Hub, EKENÄSET..."
+                            required
+                        />
 
                         {/* Descripción */}
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                Descripción *
-                            </label>
-                            <textarea
-                                {...register('description')}
-                                id="description"
-                                rows={4}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Describe el producto, sus características, materiales..."
-                            />
-                            {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Descripción"
+                            register={register('description')}
+                            error={errors.description?.message}
+                            placeholder="Describe el producto, sus características, materiales..."
+                            rows={4}
+                            required
+                        />
 
                         {/* Precio base */}
-                        <div>
-                            <label htmlFor="base_price" className="block text-sm font-medium text-gray-700 mb-2">
-                                Precio Base (€) *
-                            </label>
-                            <input
-                                {...register('base_price', { valueAsNumber: true })}
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                id="base_price"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.base_price ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="0.00"
-                            />
-                            {errors.base_price && (
-                                <p className="mt-1 text-sm text-red-600">{errors.base_price.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="number"
+                            label="Precio Base (€)"
+                            register={register('base_price', { valueAsNumber: true })}
+                            error={errors.base_price?.message}
+                            placeholder="0.00"
+                            min={0}
+                            step="0.01"
+                            required
+                        />
 
                         {/* URLs de imágenes */}
-                        <div>
-                            <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
-                                URLs de Imágenes (separadas por comas)
-                            </label>
-                            <textarea
-                                {...register('images')}
-                                id="images"
-                                rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg..."
-                            />
-                            <p className="mt-1 text-sm text-gray-500">
-                                Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="URLs de Imágenes (separadas por comas)"
+                            register={register('images')}
+                            placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg..."
+                            rows={3}
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.
+                        </p>
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

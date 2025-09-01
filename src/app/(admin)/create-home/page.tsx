@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { CreateHome } from '@/lib/types';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
+import { Input } from '@/components/ui/Input';
 
 // Esquema de validación para crear una casa
 const createHomeSchema = z.object({
@@ -86,80 +87,48 @@ export default function CreateHomePage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre de la casa */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre de la Casa *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Villa Mediterránea"
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre de la Casa"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Villa Mediterránea"
+                            required
+                        />
 
                         {/* Destino */}
-                        <div>
-                            <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-2">
-                                Destino *
-                            </label>
-                            <select
-                                {...register('destination')}
-                                id="destination"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.destination ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un destino</option>
-                                <option value="vacacional">Vacacional</option>
-                                <option value="residencial">Residencial</option>
-                                <option value="comercial">Comercial</option>
-                                <option value="mixto">Mixto</option>
-                            </select>
-                            {errors.destination && (
-                                <p className="mt-1 text-sm text-red-600">{errors.destination.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Destino"
+                            register={register('destination')}
+                            error={errors.destination?.message}
+                            placeholder="Selecciona un destino"
+                            required
+                        >
+                            <option value="vacacional">Vacacional</option>
+                            <option value="residencial">Residencial</option>
+                            <option value="comercial">Comercial</option>
+                            <option value="mixto">Mixto</option>
+                        </Input>
 
                         {/* Dirección */}
-                        <div>
-                            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                                Dirección *
-                            </label>
-                            <textarea
-                                {...register('address')}
-                                id="address"
-                                rows={3}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.address ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Dirección completa de la casa"
-                            />
-                            {errors.address && (
-                                <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Dirección"
+                            register={register('address')}
+                            error={errors.address?.message}
+                            placeholder="Dirección completa de la casa"
+                            rows={3}
+                            required
+                        />
 
                         {/* Imagen principal */}
-                        <div>
-                            <label htmlFor="main_image" className="block text-sm font-medium text-gray-700 mb-2">
-                                URL de la Imagen Principal
-                            </label>
-                            <input
-                                {...register('main_image')}
-                                type="url"
-                                id="main_image"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.main_image ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://ejemplo.com/imagen.jpg"
-                            />
-                            {errors.main_image && (
-                                <p className="mt-1 text-sm text-red-600">{errors.main_image.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="URL de la Imagen Principal"
+                            register={register('main_image')}
+                            error={errors.main_image?.message}
+                            placeholder="https://ejemplo.com/imagen.jpg"
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

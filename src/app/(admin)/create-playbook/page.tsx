@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreatePlaybook, Playbook, Room } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -92,139 +93,92 @@ export default function CreatePlaybookPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Habitación */}
-                        <div>
-                            <label htmlFor="room_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Habitación *
-                            </label>
-                            <select
-                                {...register('room_id')}
-                                id="room_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.room_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una habitación</option>
-                                {rooms.map((room) => (
-                                    <option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.room_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.room_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Habitación"
+                            register={register('room_id')}
+                            error={errors.room_id?.message}
+                            placeholder="Selecciona una habitación"
+                            required
+                        >
+                            {rooms.map((room) => (
+                                <option key={room.id} value={room.id}>
+                                    {room.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Tipo de procedimiento */}
-                        <div>
-                            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
-                                Tipo de Procedimiento *
-                            </label>
-                            <select
-                                {...register('type')}
-                                id="type"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.type ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un tipo</option>
-                                <option value="limpieza">Limpieza</option>
-                                <option value="mantenimiento">Mantenimiento</option>
-                                <option value="decoracion">Decoración</option>
-                                <option value="reparacion">Reparación</option>
-                                <option value="instalacion">Instalación</option>
-                                <option value="revision">Revisión</option>
-                                <option value="preparacion">Preparación</option>
-                                <option value="organizacion">Organización</option>
-                            </select>
-                            {errors.type && (
-                                <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Tipo de Procedimiento"
+                            register={register('type')}
+                            error={errors.type?.message}
+                            placeholder="Selecciona un tipo"
+                            required
+                        >
+                            <option value="limpieza">Limpieza</option>
+                            <option value="mantenimiento">Mantenimiento</option>
+                            <option value="decoracion">Decoración</option>
+                            <option value="reparacion">Reparación</option>
+                            <option value="instalacion">Instalación</option>
+                            <option value="revision">Revisión</option>
+                            <option value="preparacion">Preparación</option>
+                            <option value="organizacion">Organización</option>
+                        </Input>
 
                         {/* Título */}
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                Título del Procedimiento *
-                            </label>
-                            <input
-                                {...register('title')}
-                                type="text"
-                                id="title"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.title ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Limpieza semanal del dormitorio, Mantenimiento de la cocina..."
-                            />
-                            {errors.title && (
-                                <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Título del Procedimiento"
+                            register={register('title')}
+                            error={errors.title?.message}
+                            placeholder="Ej: Limpieza de cocina, Mantenimiento de calefacción..."
+                            required
+                        />
 
                         {/* Tiempo estimado */}
-                        <div>
-                            <label htmlFor="estimated_time" className="block text-sm font-medium text-gray-700 mb-2">
-                                Tiempo Estimado *
-                            </label>
-                            <select
-                                {...register('estimated_time')}
-                                id="estimated_time"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.estimated_time ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona el tiempo estimado</option>
-                                <option value="15 min">15 minutos</option>
-                                <option value="30 min">30 minutos</option>
-                                <option value="1 hora">1 hora</option>
-                                <option value="2 horas">2 horas</option>
-                                <option value="4 horas">4 horas</option>
-                                <option value="1 día">1 día</option>
-                                <option value="2-3 días">2-3 días</option>
-                                <option value="1 semana">1 semana</option>
-                            </select>
-                            {errors.estimated_time && (
-                                <p className="mt-1 text-sm text-red-600">{errors.estimated_time.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Tiempo Estimado"
+                            register={register('estimated_time')}
+                            error={errors.estimated_time?.message}
+                            placeholder="Selecciona el tiempo estimado"
+                            required
+                        >
+                            <option value="15 min">15 minutos</option>
+                            <option value="30 min">30 minutos</option>
+                            <option value="1 hora">1 hora</option>
+                            <option value="2 horas">2 horas</option>
+                            <option value="4 horas">4 horas</option>
+                            <option value="1 día">1 día</option>
+                            <option value="2-3 días">2-3 días</option>
+                            <option value="1 semana">1 semana</option>
+                        </Input>
 
                         {/* Tareas */}
-                        <div>
-                            <label htmlFor="tasks" className="block text-sm font-medium text-gray-700 mb-2">
-                                Tareas a Realizar *
-                            </label>
-                            <textarea
-                                {...register('tasks')}
-                                id="tasks"
-                                rows={6}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.tasks ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Describe paso a paso las tareas a realizar..."
-                            />
-                            {errors.tasks && (
-                                <p className="mt-1 text-sm text-red-600">{errors.tasks.message}</p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-500">
-                                Describe cada tarea en una línea separada o en párrafos organizados.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Tareas a Realizar"
+                            register={register('tasks')}
+                            error={errors.tasks?.message}
+                            placeholder="1. Preparar materiales necesarios\n2. Limpiar superficie\n3. Aplicar producto\n4. Secar y verificar..."
+                            rows={3}
+                            required
+                        />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Describe cada tarea en una línea separada o en párrafos organizados.
+                        </p>
 
                         {/* Materiales */}
-                        <div>
-                            <label htmlFor="materials" className="block text-sm font-medium text-gray-700 mb-2">
-                                Materiales Necesarios *
-                            </label>
-                            <textarea
-                                {...register('materials')}
-                                id="materials"
-                                rows={4}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.materials ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Lista de materiales, herramientas y productos necesarios..."
-                            />
-                            {errors.materials && (
-                                <p className="mt-1 text-sm text-red-600">{errors.materials.message}</p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-500">
-                                Incluye herramientas, productos de limpieza, repuestos, etc.
-                            </p>
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Materiales Necesarios"
+                            register={register('materials')}
+                            error={errors.materials?.message}
+                            placeholder="• Producto de limpieza\n• Trapos o paños\n• Guantes\n• Herramientas específicas..."
+                            rows={3}
+                            required
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

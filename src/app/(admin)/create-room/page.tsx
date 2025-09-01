@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateRoom, Home, RoomType } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -86,86 +87,56 @@ export default function CreateRoomPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre de la habitación */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre de la Habitación *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Dormitorio Principal, Baño de Invitados..."
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre de la Habitación"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Dormitorio Principal, Cocina, Baño..."
+                            required
+                        />
 
                         {/* Casa */}
-                        <div>
-                            <label htmlFor="home_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Casa *
-                            </label>
-                            <select
-                                {...register('home_id')}
-                                id="home_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.home_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona una casa</option>
-                                {homes.map((home) => (
-                                    <option key={home.id} value={home.id}>
-                                        {home.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.home_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.home_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Casa"
+                            register={register('home_id')}
+                            error={errors.home_id?.message}
+                            placeholder="Selecciona una casa"
+                            required
+                        >
+                            {homes.map((home) => (
+                                <option key={home.id} value={home.id}>
+                                    {home.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Tipo de habitación */}
-                        <div>
-                            <label htmlFor="room_type_id" className="block text-sm font-medium text-gray-700 mb-2">
-                                Tipo de Habitación *
-                            </label>
-                            <select
-                                {...register('room_type_id')}
-                                id="room_type_id"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.room_type_id ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un tipo</option>
-                                {roomTypes.map((roomType) => (
-                                    <option key={roomType.id} value={roomType.id}>
-                                        {roomType.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.room_type_id && (
-                                <p className="mt-1 text-sm text-red-600">{errors.room_type_id.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="select"
+                            label="Tipo de Habitación"
+                            register={register('room_type_id')}
+                            error={errors.room_type_id?.message}
+                            placeholder="Selecciona un tipo"
+                            required
+                        >
+                            {roomTypes.map((roomType) => (
+                                <option key={roomType.id} value={roomType.id}>
+                                    {roomType.name}
+                                </option>
+                            ))}
+                        </Input>
 
                         {/* Descripción */}
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                Descripción *
-                            </label>
-                            <textarea
-                                {...register('description')}
-                                id="description"
-                                rows={4}
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Describe la habitación, sus características, orientación..."
-                            />
-                            {errors.description && (
-                                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="textarea"
+                            label="Descripción"
+                            register={register('description')}
+                            error={errors.description?.message}
+                            placeholder="Descripción detallada de la habitación, características, dimensiones..."
+                            rows={3}
+                            required
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (

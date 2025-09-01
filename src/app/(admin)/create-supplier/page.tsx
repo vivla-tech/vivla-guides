@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateSupplier } from '@/lib/types';
+import { Input } from '@/components/ui/Input';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -81,76 +82,42 @@ export default function CreateSupplierPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         {/* Nombre del proveedor */}
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Nombre del Proveedor *
-                            </label>
-                            <input
-                                {...register('name')}
-                                type="text"
-                                id="name"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ej: Electrodomésticos García, Muebles López..."
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            label="Nombre del Proveedor"
+                            register={register('name')}
+                            error={errors.name?.message}
+                            placeholder="Ej: Proveedor ABC, Distribuidora XYZ..."
+                            required
+                        />
 
                         {/* Sitio web */}
-                        <div>
-                            <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                                Sitio Web
-                            </label>
-                            <input
-                                {...register('website')}
-                                type="url"
-                                id="website"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.website ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="https://www.ejemplo.com"
-                            />
-                            {errors.website && (
-                                <p className="mt-1 text-sm text-red-600">{errors.website.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="url"
+                            label="Sitio Web"
+                            register={register('website')}
+                            error={errors.website?.message}
+                            placeholder="https://www.proveedor.com"
+                        />
 
                         {/* Email de contacto */}
-                        <div>
-                            <label htmlFor="contact_email" className="block text-sm font-medium text-gray-700 mb-2">
-                                Email de Contacto *
-                            </label>
-                            <input
-                                {...register('contact_email')}
-                                type="email"
-                                id="contact_email"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.contact_email ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="contacto@proveedor.com"
-                            />
-                            {errors.contact_email && (
-                                <p className="mt-1 text-sm text-red-600">{errors.contact_email.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="email"
+                            label="Email de Contacto"
+                            register={register('contact_email')}
+                            error={errors.contact_email?.message}
+                            placeholder="contacto@proveedor.com"
+                            required
+                        />
 
                         {/* Teléfono */}
-                        <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                                Teléfono *
-                            </label>
-                            <input
-                                {...register('phone')}
-                                type="tel"
-                                id="phone"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.phone ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                                placeholder="+34 600 000 000"
-                            />
-                            {errors.phone && (
-                                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                            )}
-                        </div>
+                        <Input
+                            type="tel"
+                            label="Teléfono"
+                            register={register('phone')}
+                            error={errors.phone?.message}
+                            placeholder="+34 600 000 000"
+                            required
+                        />
 
                         {/* Mensaje de estado */}
                         {submitMessage && (
