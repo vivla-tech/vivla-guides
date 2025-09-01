@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreateAmenity, Category, Brand } from '@/lib/types';
+import { CreateAmenity, Category, Brand, Amenity } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
+import { DataTable } from '@/components/ui/DataTable';
+import { Modal } from '@/components/ui/Modal';
+import { EditAmenityForm } from '@/components/ui/EditAmenityForm';
+import { DeleteAmenityConfirmation } from '@/components/ui/DeleteAmenityConfirmation';
+import { ColumnDef } from '@tanstack/react-table';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -30,11 +35,139 @@ export default function CreateAmenityPage() {
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
 
+    // Estados para paginación del servidor
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Estados para edición
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingAmenity, setEditingAmenity] = useState<Amenity | null>(null);
+    const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+
+    // Estados para eliminación
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deletingAmenity, setDeletingAmenity] = useState<Amenity | null>(null);
+
     // Usar hooks personalizados para cargar datos
-    const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories');
-    const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
+    const { data: categories } = useApiData<Category>('categories');
+    const { data: brands } = useApiData<Brand>('brands');
+
+    // Cargar amenities con paginación del servidor
+    const amenitiesParams = useMemo(() => ({
+        page: currentPage,
+        pageSize: pageSize
+    }), [currentPage, pageSize]);
+
+    const { data: amenities, meta: amenitiesMeta, isLoading: isLoadingAmenities, error: amenitiesError } = useApiData<Amenity>('amenities', amenitiesParams);
 
     const apiClient = createApiClient(config.apiUrl);
+
+    // Funciones para manejar edición y eliminación
+    const handleEditAmenity = (amenity: Amenity) => {
+        setEditingAmenity(amenity);
+        setEditImageUrls(amenity.images || []);
+        setIsEditing(true);
+    };
+
+    const handleDeleteAmenity = (amenity: Amenity) => {
+        setDeletingAmenity(amenity);
+        setIsDeleting(true);
+    };
+
+    // Definir columnas para la tabla de amenities
+    const columns: ColumnDef<Amenity>[] = [
+        {
+            accessorKey: 'images',
+            header: 'Imágenes',
+            size: 100,
+            cell: ({ row }) => {
+                const images = row.getValue('images') as string[];
+                return images && images.length > 0 ? (
+                    <div className="flex items-center justify-center">
+                        <img
+                            src={images[0]}
+                            alt={row.getValue('name') as string}
+                            className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                        />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">Sin imagen</span>
+                        </div>
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: 'name',
+            header: 'Nombre',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="font-semibold text-gray-900 text-base">
+                    {row.getValue('name')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'reference',
+            header: 'Referencia',
+            size: 150,
+            cell: ({ row }) => (
+                <div className="text-gray-700 font-mono text-sm">
+                    {row.getValue('reference')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'model',
+            header: 'Modelo',
+            size: 150,
+            cell: ({ row }) => (
+                <div className="text-gray-700">
+                    {row.getValue('model')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'base_price',
+            header: 'Precio',
+            size: 120,
+            cell: ({ row }) => {
+                const price = row.getValue('base_price');
+                const numericPrice = typeof price === 'number' ? price : parseFloat(price as string) || 0;
+                return (
+                    <div className="text-green-600 font-medium">
+                        €{numericPrice.toFixed(2)}
+                    </div>
+                );
+            },
+        },
+        {
+            id: 'actions',
+            header: 'Acciones',
+            size: 200,
+            cell: ({ row }) => {
+                const amenity = row.original;
+                return (
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => handleEditAmenity(amenity)}
+                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Editar
+                        </button>
+                        <button
+                            onClick={() => handleDeleteAmenity(amenity)}
+                            className="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                            Eliminar
+                        </button>
+                    </div>
+                );
+            },
+        },
+    ];
 
     const {
         register,
@@ -95,8 +228,8 @@ export default function CreateAmenityPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-2xl mx-auto px-4">
-                <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                     <h1 className="text-2xl font-bold text-gray-900 mb-6">
                         Crear Nuevo Amenity
                     </h1>
@@ -118,18 +251,15 @@ export default function CreateAmenityPage() {
                             register={register('category_id')}
                             error={errors.category_id?.message}
                             placeholder="Selecciona una categoría"
-                            disabled={isLoadingCategories}
                             required
                         >
-                            {categories.map((category) => (
+                            <option value="">Selecciona una categoría</option>
+                            {categories?.map((category) => (
                                 <option key={category.id} value={category.id}>
                                     {category.name}
                                 </option>
                             ))}
                         </Input>
-                        {isLoadingCategories && (
-                            <p className="mt-1 text-sm text-gray-500">Cargando categorías desde la base de datos...</p>
-                        )}
 
                         {/* Marca */}
                         <Input
@@ -138,18 +268,15 @@ export default function CreateAmenityPage() {
                             register={register('brand_id')}
                             error={errors.brand_id?.message}
                             placeholder="Selecciona una marca"
-                            disabled={isLoadingBrands}
                             required
                         >
-                            {brands.map((brand) => (
+                            <option value="">Selecciona una marca</option>
+                            {brands?.map((brand) => (
                                 <option key={brand.id} value={brand.id}>
                                     {brand.name}
                                 </option>
                             ))}
                         </Input>
-                        {isLoadingBrands && (
-                            <p className="mt-1 text-sm text-gray-500">Cargando marcas desde la base de datos...</p>
-                        )}
 
                         {/* Referencia */}
                         <Input
@@ -235,6 +362,83 @@ export default function CreateAmenityPage() {
                     </form>
 
                 </div>
+
+                {/* Tabla de amenities existentes */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <DataTable
+                        title="Productos Existentes"
+                        columns={columns}
+                        data={amenities}
+                        isLoading={isLoadingAmenities}
+                        error={amenitiesError}
+                        emptyMessage="No hay productos creados aún."
+                        // Paginación del servidor
+                        serverSidePagination={true}
+                        totalCount={amenitiesMeta?.total || 0}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        onPageChange={setCurrentPage}
+                        onPageSizeChange={setPageSize}
+                        useContainer={false}
+                    />
+                </div>
+
+                {/* Modal de edición */}
+                <Modal
+                    isOpen={isEditing}
+                    onClose={() => {
+                        setIsEditing(false);
+                        setEditingAmenity(null);
+                        setEditImageUrls([]);
+                    }}
+                    title="Editar Producto"
+                >
+                    {editingAmenity && (
+                        <EditAmenityForm
+                            amenity={editingAmenity}
+                            imageUrls={editImageUrls}
+                            onImageUrlsChange={setEditImageUrls}
+                            onClose={() => {
+                                setIsEditing(false);
+                                setEditingAmenity(null);
+                                setEditImageUrls([]);
+                            }}
+                            onSuccess={() => {
+                                setIsEditing(false);
+                                setEditingAmenity(null);
+                                setEditImageUrls([]);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
+
+                {/* Modal de eliminación */}
+                <Modal
+                    isOpen={isDeleting}
+                    onClose={() => {
+                        setIsDeleting(false);
+                        setDeletingAmenity(null);
+                    }}
+                    title="Confirmar Eliminación"
+                >
+                    {deletingAmenity && (
+                        <DeleteAmenityConfirmation
+                            amenity={deletingAmenity}
+                            onClose={() => {
+                                setIsDeleting(false);
+                                setDeletingAmenity(null);
+                            }}
+                            onSuccess={() => {
+                                setIsDeleting(false);
+                                setDeletingAmenity(null);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
             </div>
         </div>
     );

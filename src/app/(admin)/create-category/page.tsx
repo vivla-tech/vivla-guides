@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreateCategory } from '@/lib/types';
+import { CreateCategory, Category } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
+import { DataTable } from '@/components/ui/DataTable';
+import { Modal } from '@/components/ui/Modal';
+import { EditCategoryForm } from '@/components/ui/EditCategoryForm';
+import { DeleteCategoryConfirmation } from '@/components/ui/DeleteCategoryConfirmation';
+import { ColumnDef } from '@tanstack/react-table';
+import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -20,7 +26,97 @@ type CreateCategoryFormData = z.infer<typeof createCategorySchema>;
 export default function CreateCategoryPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    // Estados para paginación del servidor
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+
+    // Estados para edición
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+    // Estados para eliminación
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+
     const apiClient = createApiClient(config.apiUrl);
+
+    // Funciones para manejar edición y eliminación
+    const handleEditCategory = (category: Category) => {
+        setEditingCategory(category);
+        setIsEditing(true);
+    };
+
+    const handleDeleteCategory = (category: Category) => {
+        setDeletingCategory(category);
+        setIsDeleting(true);
+    };
+
+    // Definir columnas para la tabla de categorías
+    const columns: ColumnDef<Category>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Nombre',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="font-semibold text-gray-900 text-base">
+                    {row.getValue('name')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'description',
+            header: 'Descripción',
+            size: 400,
+            cell: ({ row }) => (
+                <div className="text-gray-700 leading-relaxed">
+                    {row.getValue('description')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'id',
+            header: 'ID',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="text-xs text-gray-500 font-mono">
+                    {row.getValue('id')}
+                </div>
+            ),
+        },
+        {
+            id: 'actions',
+            header: 'Acciones',
+            size: 200,
+            cell: ({ row }) => {
+                const category = row.original;
+                return (
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => handleEditCategory(category)}
+                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Editar
+                        </button>
+                        <button
+                            onClick={() => handleDeleteCategory(category)}
+                            className="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                            Eliminar
+                        </button>
+                    </div>
+                );
+            },
+        },
+    ];
+
+    // Cargar categorías con paginación del servidor
+    const categoriesParams = useMemo(() => ({
+        page: currentPage,
+        pageSize: pageSize
+    }), [currentPage, pageSize]);
+
+    const { data: categories, meta: categoriesMeta, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories', categoriesParams);
 
     const {
         register,
@@ -70,8 +166,8 @@ export default function CreateCategoryPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-2xl mx-auto px-4">
-                <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                     <h1 className="text-2xl font-bold text-gray-900 mb-6">
                         Crear Nueva Categoría
                     </h1>
@@ -127,6 +223,78 @@ export default function CreateCategoryPage() {
                     </form>
 
                 </div>
+
+                {/* Tabla de categorías existentes */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <DataTable
+                        title="Categorías Existentes"
+                        columns={columns}
+                        data={categories}
+                        isLoading={isLoadingCategories}
+                        error={categoriesError}
+                        emptyMessage="No hay categorías creadas aún."
+                        // Paginación del servidor
+                        serverSidePagination={true}
+                        totalCount={categoriesMeta?.total || 0}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        onPageChange={setCurrentPage}
+                        onPageSizeChange={setPageSize}
+                        useContainer={false}
+                    />
+                </div>
+
+                {/* Modal de edición */}
+                <Modal
+                    isOpen={isEditing}
+                    onClose={() => {
+                        setIsEditing(false);
+                        setEditingCategory(null);
+                    }}
+                    title="Editar Categoría"
+                >
+                    {editingCategory && (
+                        <EditCategoryForm
+                            category={editingCategory}
+                            onClose={() => {
+                                setIsEditing(false);
+                                setEditingCategory(null);
+                            }}
+                            onSuccess={() => {
+                                setIsEditing(false);
+                                setEditingCategory(null);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
+
+                {/* Modal de eliminación */}
+                <Modal
+                    isOpen={isDeleting}
+                    onClose={() => {
+                        setIsDeleting(false);
+                        setDeletingCategory(null);
+                    }}
+                    title="Confirmar Eliminación"
+                >
+                    {deletingCategory && (
+                        <DeleteCategoryConfirmation
+                            category={deletingCategory}
+                            onClose={() => {
+                                setIsDeleting(false);
+                                setDeletingCategory(null);
+                            }}
+                            onSuccess={() => {
+                                setIsDeleting(false);
+                                setDeletingCategory(null);
+                                // Recargar datos
+                                window.location.reload();
+                            }}
+                        />
+                    )}
+                </Modal>
             </div>
         </div>
     );

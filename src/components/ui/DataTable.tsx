@@ -25,6 +25,8 @@ interface DataTableProps<TData, TValue> {
     onPageChange?: (page: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     serverSidePagination?: boolean;
+    // Prop para controlar si usar contenedor propio
+    useContainer?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,7 +42,9 @@ export function DataTable<TData, TValue>({
     pageSize = 20,
     onPageChange,
     onPageSizeChange,
-    serverSidePagination = false
+    serverSidePagination = false,
+    // Prop para controlar si usar contenedor propio
+    useContainer = true
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -70,27 +74,35 @@ export function DataTable<TData, TValue>({
     });
 
     if (isLoading) {
-        return (
-            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
+        const content = (
+            <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
         );
+
+        return useContainer ? (
+            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+                {content}
+            </div>
+        ) : content;
     }
 
     if (error) {
-        return (
-            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-                <div className="text-red-600 text-center py-4">
-                    Error al cargar los datos: {error}
-                </div>
+        const content = (
+            <div className="text-red-600 text-center py-4">
+                Error al cargar los datos: {error}
             </div>
         );
+
+        return useContainer ? (
+            <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+                {content}
+            </div>
+        ) : content;
     }
 
-    return (
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6 w-full">
+    const tableContent = (
+        <>
             {title && (
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                     {title} ({serverSidePagination ? totalCount : data.length})
@@ -210,6 +222,16 @@ export function DataTable<TData, TValue>({
                     </div>
                 </div>
             )}
+        </>
+    );
+
+    return useContainer ? (
+        <div className="mt-8 bg-white rounded-lg shadow-md p-6 w-full">
+            {tableContent}
+        </div>
+    ) : (
+        <div className="w-full">
+            {tableContent}
         </div>
     );
 }
