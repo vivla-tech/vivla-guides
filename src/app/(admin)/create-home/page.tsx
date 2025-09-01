@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CreateHome } from '@/lib/types';
+import { CreateHome, Home } from '@/lib/types';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
+import { useApiData } from '@/hooks/useApiData';
+import { DataTable } from '@/components/ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 
 // Esquema de validación para crear una casa
 const createHomeSchema = z.object({
@@ -20,10 +23,87 @@ const createHomeSchema = z.object({
 
 type CreateHomeFormData = z.infer<typeof createHomeSchema>;
 
+// Definir columnas para la tabla de casas
+const columns: ColumnDef<Home>[] = [
+    {
+        accessorKey: 'main_image',
+        header: 'Imagen',
+        size: 100,
+        cell: ({ row }) => {
+            const image = row.getValue('main_image') as string;
+            return image ? (
+                <div className="flex items-center justify-center">
+                    <img
+                        src={image}
+                        alt={row.getValue('name') as string}
+                        className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                    />
+                </div>
+            ) : (
+                <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">Sin imagen</span>
+                    </div>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: 'name',
+        header: 'Nombre',
+        size: 200,
+        cell: ({ row }) => (
+            <div className="font-semibold text-gray-900 text-base">
+                {row.getValue('name')}
+            </div>
+        ),
+    },
+    {
+        accessorKey: 'destination',
+        header: 'Destino',
+        size: 150,
+        cell: ({ row }) => {
+            const destination = row.getValue('destination') as string;
+            return (
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${destination === 'vacacional' ? 'bg-blue-100 text-blue-800' :
+                    destination === 'residencial' ? 'bg-green-100 text-green-800' :
+                        destination === 'comercial' ? 'bg-purple-100 text-purple-800' :
+                            'bg-gray-100 text-gray-800'
+                    }`}>
+                    {destination}
+                </span>
+            );
+        },
+    },
+    {
+        accessorKey: 'address',
+        header: 'Dirección',
+        size: 300,
+        cell: ({ row }) => (
+            <div className="text-gray-700 leading-relaxed">
+                {row.getValue('address')}
+            </div>
+        ),
+    },
+    {
+        accessorKey: 'id',
+        header: 'ID',
+        size: 200,
+        cell: ({ row }) => (
+            <div className="text-xs text-gray-500 font-mono">
+                {row.getValue('id')}
+            </div>
+        ),
+    },
+];
+
 export default function CreateHomePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [imageUrls, setImageUrls] = useState<string[]>([]); // Nuevo estado para las URLs de imagen
+
+    // Cargar casas existentes
+    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
 
     const apiClient = createApiClient(config.apiUrl);
 
@@ -82,7 +162,7 @@ export default function CreateHomePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-2xl mx-auto px-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-6">
                         Crear Nueva Casa
@@ -163,6 +243,16 @@ export default function CreateHomePage() {
                         </div>
                     </form>
                 </div>
+
+                {/* Tabla de casas existentes */}
+                <DataTable
+                    title="Casas Existentes"
+                    columns={columns}
+                    data={homes}
+                    isLoading={isLoadingHomes}
+                    error={homesError}
+                    emptyMessage="No hay casas creadas aún."
+                />
             </div>
         </div>
     );
