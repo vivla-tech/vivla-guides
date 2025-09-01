@@ -37,7 +37,6 @@ export interface Amenity {
   category_id: string;           // UUID de la categoría
   brand_id: string;              // UUID de la marca
   reference: string;             // Referencia del producto
-  amenity_type: string;          // Tipo de amenity
   model: string;                 // Modelo
   description: string;            // Descripción (TEXT)
   base_price: number;            // Precio base

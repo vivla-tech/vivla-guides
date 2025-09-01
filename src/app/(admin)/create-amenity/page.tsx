@@ -54,7 +54,6 @@ export default function CreateAmenityPage() {
                 category_id: data.category_id,
                 brand_id: data.brand_id,
                 reference: data.reference,
-                amenity_type: data.amenity_type,
                 model: data.model,
                 description: data.description,
                 base_price: data.base_price,
@@ -191,30 +190,6 @@ export default function CreateAmenityPage() {
                             />
                             {errors.reference && (
                                 <p className="mt-1 text-sm text-red-600">{errors.reference.message}</p>
-                            )}
-                        </div>
-
-                        {/* Tipo de amenity */}
-                        <div>
-                            <label htmlFor="amenity_type" className="block text-sm font-medium text-gray-700 mb-2">
-                                Tipo de Amenity *
-                            </label>
-                            <select
-                                {...register('amenity_type')}
-                                id="amenity_type"
-                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.amenity_type ? 'border-red-300' : 'border-gray-300'
-                                    }`}
-                            >
-                                <option value="">Selecciona un tipo</option>
-                                <option value="electrodomestico">Electrodoméstico</option>
-                                <option value="mueble">Mueble</option>
-                                <option value="iluminacion">Iluminación</option>
-                                <option value="textil">Textil</option>
-                                <option value="tecnologia">Tecnología</option>
-                                <option value="decoracion">Decoración</option>
-                            </select>
-                            {errors.amenity_type && (
-                                <p className="mt-1 text-sm text-red-600">{errors.amenity_type.message}</p>
                             )}
                         </div>
 
