@@ -5,8 +5,7 @@ import { config } from '@/lib/config';
 // Hook personalizado para cargar datos de la API
 export function useApiData<T>(
   endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms',
-  params?: { page?: number; pageSize?: number },
-  dependencies: unknown[] = []
+  params?: { page?: number; pageSize?: number }
 ) {
   const [data, setData] = useState<T[]>([]);
   const [meta, setMeta] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(null);

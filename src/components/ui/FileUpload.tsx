@@ -84,7 +84,7 @@ export function FileUpload({
         }
 
         setFiles(prev => [...prev, ...newFiles]);
-    }, [files.length, maxFiles, accept, maxSize]);
+    }, [files.length, maxFiles, accept, maxSize, validateFile]);
 
     // Manejar drag & drop
     const handleDragOver = useCallback((e: React.DragEvent) => {

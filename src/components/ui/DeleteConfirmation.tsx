@@ -50,7 +50,7 @@ export function DeleteConfirmation({ home, onClose, onSuccess }: DeleteConfirmat
                     ¿Eliminar casa?
                 </h3>
                 <p className="text-sm text-gray-600">
-                    ¿Estás seguro de que quieres eliminar la casa <strong>"{home.name}"</strong>?
+                    ¿Estás seguro de que quieres eliminar la casa <strong>&quot;{home.name}&quot;</strong>?
                     Esta acción no se puede deshacer.
                 </p>
             </div>
