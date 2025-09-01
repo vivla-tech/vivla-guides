@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateAmenity, Category, Brand } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -16,11 +17,10 @@ const createAmenitySchema = z.object({
     category_id: z.string().min(1, 'La categoría es requerida'),
     brand_id: z.string().min(1, 'La marca es requerida'),
     reference: z.string().min(1, 'La referencia es requerida'),
-    amenity_type: z.string().min(1, 'El tipo de amenity es requerido'),
     model: z.string().min(1, 'El modelo es requerido'),
     description: z.string().min(1, 'La descripción es requerida'),
     base_price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
-    images: z.string().optional(),
+    // Removemos images del esquema ya que se manejará con FileUpload
 });
 
 type CreateAmenityFormData = z.infer<typeof createAmenitySchema>;
@@ -28,6 +28,7 @@ type CreateAmenityFormData = z.infer<typeof createAmenitySchema>;
 export default function CreateAmenityPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [imageUrls, setImageUrls] = useState<string[]>([]);
 
     // Usar hooks personalizados para cargar datos
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories');
@@ -58,7 +59,7 @@ export default function CreateAmenityPage() {
                 model: data.model,
                 description: data.description,
                 base_price: data.base_price,
-                images: data.images ? data.images.split(',').map(url => url.trim()) : [],
+                images: imageUrls, // Usar las URLs de las imágenes subidas
             };
 
             // Llamada real a la API
@@ -72,6 +73,7 @@ export default function CreateAmenityPage() {
 
                 // Limpiar formulario
                 reset();
+                setImageUrls([]);
             } else {
                 // Manejar error de la API
                 setSubmitMessage({
@@ -191,12 +193,13 @@ export default function CreateAmenityPage() {
                         />
 
                         {/* URLs de imágenes */}
-                        <Input
-                            type="textarea"
-                            label="URLs de Imágenes (separadas por comas)"
-                            register={register('images')}
-                            placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg..."
-                            rows={3}
+                        <FileUpload
+                            label="Imágenes del Producto"
+                            onUrlsChange={setImageUrls}
+                            accept="image/*"
+                            maxFiles={5}
+                            maxSize={2}
+                            basePath="amenities"
                         />
                         <p className="mt-1 text-sm text-gray-500">
                             Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.

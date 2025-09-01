@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ApplianceGuide, Brand, CreateApplianceGuide } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -16,9 +17,7 @@ const createApplianceGuideSchema = z.object({
     brand_id: z.string().min(1, 'Debes seleccionar una marca'),
     model: z.string().min(1, 'El modelo es requerido'),
     brief_description: z.string().min(1, 'La descripción breve es requerida'),
-    image_urls: z.string().optional(),
-    pdf_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-    video_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+    // Removemos image_urls, pdf_url y video_url del esquema ya que se manejarán con FileUpload
     quick_use_bullets: z.string().min(1, 'Los puntos de uso rápido son requeridos'),
     maintenance_bullets: z.string().min(1, 'Los puntos de mantenimiento son requeridos'),
 });
@@ -28,6 +27,9 @@ type CreateApplianceGuideFormData = z.infer<typeof createApplianceGuideSchema>;
 export default function CreateApplianceGuidePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [imageUrls, setImageUrls] = useState<string[]>([]); // Nuevo estado para las URLs de imagen
+    const [pdfUrls, setPdfUrls] = useState<string[]>([]); // Nuevo estado para las URLs de PDF
+    const [videoUrls, setVideoUrls] = useState<string[]>([]); // Nuevo estado para las URLs de video
 
     const { data: brands, isLoading: isLoadingBrands, error: brandsError } = useApiData<Brand>('brands');
 
@@ -53,9 +55,9 @@ export default function CreateApplianceGuidePage() {
                 brand_id: data.brand_id,
                 model: data.model,
                 brief_description: data.brief_description,
-                image_urls: data.image_urls ? data.image_urls.split(',').map(url => url.trim()).filter(url => url.length > 0) : [],
-                pdf_url: data.pdf_url || undefined,
-                video_url: data.video_url || undefined,
+                image_urls: imageUrls, // Usar las URLs de las imágenes subidas
+                pdf_url: pdfUrls.length > 0 ? pdfUrls[0] : undefined, // Usar la primera URL del PDF subido
+                video_url: videoUrls.length > 0 ? videoUrls[0] : undefined, // Usar la primera URL del video subido
                 quick_use_bullets: data.quick_use_bullets,
                 maintenance_bullets: data.maintenance_bullets,
             };
@@ -71,6 +73,9 @@ export default function CreateApplianceGuidePage() {
 
                 // Limpiar formulario
                 reset();
+                setImageUrls([]); // Limpiar URLs de imagen
+                setPdfUrls([]); // Limpiar URLs de PDF
+                setVideoUrls([]); // Limpiar URLs de video
             } else {
                 setSubmitMessage({
                     type: 'error',
@@ -144,35 +149,43 @@ export default function CreateApplianceGuidePage() {
                         />
 
                         {/* URLs de imágenes */}
-                        <Input
-                            type="textarea"
-                            label="URLs de Imágenes (separadas por comas)"
-                            register={register('image_urls')}
-                            error={errors.image_urls?.message}
-                            placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
-                            rows={3}
+                        <FileUpload
+                            label="Imágenes del Electrodoméstico"
+                            onUrlsChange={setImageUrls}
+                            accept="image/*"
+                            maxFiles={10}
+                            maxSize={5}
+                            basePath="appliance-guides"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                            Imágenes del equipo, controles, pantallas, etc.
+                            Imágenes del equipo, controles, pantallas, etc. Máximo 10 imágenes.
                         </p>
 
-                        {/* URL del PDF del manual */}
-                        <Input
-                            type="url"
-                            label="URL del PDF del Manual"
-                            register={register('pdf_url')}
-                            error={errors.pdf_url?.message}
-                            placeholder="https://www.marca.com/manual.pdf"
+                        {/* Archivo PDF del manual */}
+                        <FileUpload
+                            label="PDF del Manual del Electrodoméstico"
+                            onUrlsChange={setPdfUrls}
+                            accept=".pdf"
+                            maxFiles={1}
+                            maxSize={10}
+                            basePath="appliance-guides/manuals"
                         />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Sube el manual del electrodoméstico en formato PDF. Máximo 10MB.
+                        </p>
 
-                        {/* URL del video tutorial */}
-                        <Input
-                            type="url"
-                            label="URL del Video Tutorial"
-                            register={register('video_url')}
-                            error={errors.video_url?.message}
-                            placeholder="https://www.youtube.com/watch?v=..."
+                        {/* Archivo de video tutorial */}
+                        <FileUpload
+                            label="Video Tutorial del Electrodoméstico"
+                            onUrlsChange={setVideoUrls}
+                            accept="video/*"
+                            maxFiles={1}
+                            maxSize={50}
+                            basePath="appliance-guides/videos"
                         />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Sube un video tutorial del electrodoméstico. Máximo 50MB.
+                        </p>
 
                         {/* Puntos de uso rápido */}
                         <Input

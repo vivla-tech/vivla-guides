@@ -8,13 +8,14 @@ import { CreateHome } from '@/lib/types';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 
 // Esquema de validación para crear una casa
 const createHomeSchema = z.object({
     name: z.string().min(1, 'El nombre es requerido'),
     destination: z.string().min(1, 'El destino es requerido'),
     address: z.string().min(1, 'La dirección es requerida'),
-    main_image: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+    // Removemos main_image del esquema ya que se manejará con FileUpload
 });
 
 type CreateHomeFormData = z.infer<typeof createHomeSchema>;
@@ -22,6 +23,7 @@ type CreateHomeFormData = z.infer<typeof createHomeSchema>;
 export default function CreateHomePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [imageUrls, setImageUrls] = useState<string[]>([]); // Nuevo estado para las URLs de imagen
 
     const apiClient = createApiClient(config.apiUrl);
 
@@ -39,12 +41,12 @@ export default function CreateHomePage() {
         setSubmitMessage(null);
 
         try {
-            // Preparar datos para la API (main_image puede ser undefined)
+            // Preparar datos para la API
             const apiData: CreateHome = {
                 name: data.name,
                 destination: data.destination,
                 address: data.address,
-                main_image: data.main_image || '', // Convertir undefined a string vacío
+                main_image: imageUrls.length > 0 ? imageUrls[0] : '', // Usar la primera imagen subida
             };
 
             // Llamada real a la API
@@ -58,6 +60,7 @@ export default function CreateHomePage() {
 
                 // Limpiar formulario
                 reset();
+                setImageUrls([]); // Limpiar URLs de imagen
             } else {
                 // Manejar error de la API
                 setSubmitMessage({
@@ -122,12 +125,13 @@ export default function CreateHomePage() {
                         />
 
                         {/* Imagen principal */}
-                        <Input
-                            type="url"
-                            label="URL de la Imagen Principal"
-                            register={register('main_image')}
-                            error={errors.main_image?.message}
-                            placeholder="https://ejemplo.com/imagen.jpg"
+                        <FileUpload
+                            label="Imagen Principal de la Casa"
+                            onUrlsChange={setImageUrls}
+                            accept="image/*"
+                            maxFiles={1}
+                            maxSize={5}
+                            basePath="homes"
                         />
 
                         {/* Mensaje de estado */}

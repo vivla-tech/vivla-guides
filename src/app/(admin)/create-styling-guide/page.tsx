@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateStylingGuide, Room, StylingGuide } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -16,7 +17,7 @@ const createStylingGuideSchema = z.object({
     title: z.string().min(1, 'El título es requerido'),
     reference_photo_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
     qr_code_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-    image_urls: z.string().optional(),
+    // Removemos image_urls del esquema ya que se manejará con FileUpload
 });
 
 type CreateStylingGuideFormData = z.infer<typeof createStylingGuideSchema>;
@@ -24,6 +25,7 @@ type CreateStylingGuideFormData = z.infer<typeof createStylingGuideSchema>;
 export default function CreateStylingGuidePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [imageUrls, setImageUrls] = useState<string[]>([]); // Nuevo estado para las URLs de imagen
 
     const { data: rooms, isLoading: isLoadingRooms, error: roomsError } = useApiData<Room>('rooms');
 
@@ -49,7 +51,7 @@ export default function CreateStylingGuidePage() {
                 title: data.title,
                 reference_photo_url: data.reference_photo_url || undefined,
                 qr_code_url: data.qr_code_url || undefined,
-                image_urls: data.image_urls ? data.image_urls.split(',').map(url => url.trim()).filter(url => url.length > 0) : [],
+                image_urls: imageUrls, // Usar las URLs de las imágenes subidas
             };
 
             // Llamada real a la API
@@ -63,6 +65,7 @@ export default function CreateStylingGuidePage() {
 
                 // Limpiar formulario
                 reset();
+                setImageUrls([]); // Limpiar URLs de imagen
             } else {
                 setSubmitMessage({
                     type: 'error',
@@ -134,16 +137,16 @@ export default function CreateStylingGuidePage() {
                         />
 
                         {/* URLs de imágenes */}
-                        <Input
-                            type="textarea"
-                            label="URLs de Imágenes (separadas por comas)"
-                            register={register('image_urls')}
-                            error={errors.image_urls?.message}
-                            placeholder="https://ejemplo1.com/imagen1.jpg, https://ejemplo2.com/imagen2.jpg"
-                            rows={3}
+                        <FileUpload
+                            label="Imágenes de la Guía de Estilo"
+                            onUrlsChange={setImageUrls}
+                            accept="image/*"
+                            maxFiles={10}
+                            maxSize={5}
+                            basePath="styling-guides"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                            Separa múltiples URLs con comas. Estas imágenes mostrarán el estilo de la habitación.
+                            Sube imágenes que muestren el estilo de la habitación. Máximo 10 imágenes.
                         </p>
 
                         {/* Mensaje de estado */}

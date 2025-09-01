@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Home, CreateTechnicalPlan } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
+import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -15,7 +16,7 @@ const createTechnicalPlanSchema = z.object({
     home_id: z.string().min(1, 'Debes seleccionar una casa'),
     title: z.string().min(1, 'El título es requerido'),
     description: z.string().min(1, 'La descripción es requerida'),
-    plan_url: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
+    // Removemos plan_url del esquema ya que se manejará con FileUpload
 });
 
 type CreateTechnicalPlanFormData = z.infer<typeof createTechnicalPlanSchema>;
@@ -23,6 +24,7 @@ type CreateTechnicalPlanFormData = z.infer<typeof createTechnicalPlanSchema>;
 export default function CreateTechnicalPlanPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+    const [planUrls, setPlanUrls] = useState<string[]>([]); // Nuevo estado para las URLs del plano
 
     const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
 
@@ -50,7 +52,7 @@ export default function CreateTechnicalPlanPage() {
                 home_id: data.home_id,
                 title: data.title,
                 description: data.description,
-                plan_file_url: data.plan_url || undefined,
+                plan_file_url: planUrls.length > 0 ? planUrls[0] : undefined, // Usar la primera URL del plano subido
             };
 
             const response = await apiClient.createTechnicalPlan(apiData);
@@ -63,6 +65,7 @@ export default function CreateTechnicalPlanPage() {
 
                 // Limpiar formulario
                 reset();
+                setPlanUrls([]); // Limpiar URLs del plano
             } else {
                 setSubmitMessage({
                     type: 'error',
@@ -126,14 +129,18 @@ export default function CreateTechnicalPlanPage() {
                             required
                         />
 
-                        {/* URL del plano */}
-                        <Input
-                            type="url"
-                            label="URL del Plano (PDF, DWG, Imagen)"
-                            register={register('plan_url')}
-                            error={errors.plan_url?.message}
-                            placeholder="https://www.dropbox.com/plano.pdf"
+                        {/* Archivo del plano */}
+                        <FileUpload
+                            label="Archivo del Plano Técnico"
+                            onUrlsChange={setPlanUrls}
+                            accept=".pdf,.dwg,.jpg,.jpeg,.png"
+                            maxFiles={1}
+                            maxSize={10}
+                            basePath="technical-plans"
                         />
+                        <p className="mt-1 text-sm text-gray-500">
+                            Sube el archivo del plano técnico (PDF, DWG, imagen). Máximo 10MB.
+                        </p>
 
 
                         {/* Mensaje de estado */}
