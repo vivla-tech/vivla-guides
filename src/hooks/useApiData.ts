@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 
@@ -11,7 +11,8 @@ export function useApiData<T>(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiClient = createApiClient(config.apiUrl);
+  // Memoizar el apiClient para evitar recrearlo en cada render
+  const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
   const loadData = useCallback(async () => {
     try {
