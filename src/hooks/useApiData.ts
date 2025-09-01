@@ -5,9 +5,11 @@ import { config } from '@/lib/config';
 // Hook personalizado para cargar datos de la API
 export function useApiData<T>(
   endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms',
+  params?: { page?: number; pageSize?: number },
   dependencies: unknown[] = []
 ) {
   const [data, setData] = useState<T[]>([]);
+  const [meta, setMeta] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,25 +24,25 @@ export function useApiData<T>(
       let response;
       switch (endpoint) {
         case 'categories':
-          response = await apiClient.listCategories();
+          response = await apiClient.listCategories(params);
           break;
         case 'brands':
-          response = await apiClient.listBrands();
+          response = await apiClient.listBrands(params);
           break;
         case 'homes':
-          response = await apiClient.listHomes();
+          response = await apiClient.listHomes(params);
           break;
         case 'rooms-type':
-          response = await apiClient.listRoomTypes();
+          response = await apiClient.listRoomTypes(params);
           break;
         case 'suppliers':
-          response = await apiClient.listSuppliers();
+          response = await apiClient.listSuppliers(params);
           break;
         case 'amenities':
-          response = await apiClient.listAmenities();
+          response = await apiClient.listAmenities(params);
           break;
         case 'rooms':
-          response = await apiClient.listRooms();
+          response = await apiClient.listRooms(params);
           break;
         default:
           throw new Error(`Endpoint no soportado: ${endpoint}`);
@@ -48,6 +50,7 @@ export function useApiData<T>(
 
       if (response.success) {
         setData(response.data as T[]);
+        setMeta(response.meta);
       } else {
         setError('Error al cargar datos');
       }
@@ -57,11 +60,11 @@ export function useApiData<T>(
     } finally {
       setIsLoading(false);
     }
-  }, [endpoint, apiClient]);
+  }, [endpoint, apiClient, params?.page, params?.pageSize]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  return { data, isLoading, error };
+  return { data, meta, isLoading, error };
 }

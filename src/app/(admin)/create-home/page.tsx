@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -102,8 +102,17 @@ export default function CreateHomePage() {
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [imageUrls, setImageUrls] = useState<string[]>([]); // Nuevo estado para las URLs de imagen
 
-    // Cargar casas existentes
-    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
+    // Estados para paginación del servidor
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(20);
+
+    // Cargar casas existentes con paginación del servidor
+    const homesParams = useMemo(() => ({
+        page: currentPage,
+        pageSize: pageSize
+    }), [currentPage, pageSize]);
+
+    const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes', homesParams);
 
     const apiClient = createApiClient(config.apiUrl);
 
@@ -252,6 +261,13 @@ export default function CreateHomePage() {
                     isLoading={isLoadingHomes}
                     error={homesError}
                     emptyMessage="No hay casas creadas aún."
+                    // Paginación del servidor
+                    serverSidePagination={true}
+                    totalCount={homesMeta?.total || 0}
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
                 />
             </div>
         </div>

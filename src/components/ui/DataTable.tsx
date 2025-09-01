@@ -18,6 +18,13 @@ interface DataTableProps<TData, TValue> {
     isLoading?: boolean;
     error?: string | null;
     emptyMessage?: string;
+    // Props para paginación del servidor
+    totalCount?: number;
+    currentPage?: number;
+    pageSize?: number;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
+    serverSidePagination?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -26,7 +33,14 @@ export function DataTable<TData, TValue>({
     title,
     isLoading = false,
     error = null,
-    emptyMessage = "No hay elementos para mostrar."
+    emptyMessage = "No hay elementos para mostrar.",
+    // Props para paginación del servidor
+    totalCount,
+    currentPage = 1,
+    pageSize = 20,
+    onPageChange,
+    onPageSizeChange,
+    serverSidePagination = false
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -36,14 +50,23 @@ export function DataTable<TData, TValue>({
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
+        getPaginationRowModel: serverSidePagination ? undefined : getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
+        initialState: {
+            pagination: {
+                pageSize: serverSidePagination ? pageSize : 50,
+                pageIndex: serverSidePagination ? currentPage - 1 : 0,
+            },
+        },
         state: {
             sorting,
             columnFilters,
         },
+        // Deshabilitar paginación del cliente cuando usamos paginación del servidor
+        manualPagination: serverSidePagination,
+        pageCount: serverSidePagination ? Math.ceil((totalCount || 0) / pageSize) : undefined,
     });
 
     if (isLoading) {
@@ -70,7 +93,7 @@ export function DataTable<TData, TValue>({
         <div className="mt-8 bg-white rounded-lg shadow-md p-6 w-full">
             {title && (
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                    {title} ({data.length})
+                    {title} ({serverSidePagination ? totalCount : data.length})
                 </h2>
             )}
 
@@ -130,18 +153,34 @@ export function DataTable<TData, TValue>({
                         <div className="flex items-center space-x-2">
                             <button
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
+                                onClick={() => {
+                                    if (serverSidePagination && onPageChange) {
+                                        onPageChange(currentPage - 1);
+                                    } else {
+                                        table.previousPage();
+                                    }
+                                }}
+                                disabled={serverSidePagination ? currentPage <= 1 : !table.getCanPreviousPage()}
                             >
                                 Anterior
                             </button>
                             <span className="text-sm text-gray-700">
-                                Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+                                {serverSidePagination ? (
+                                    `Página ${currentPage} de ${Math.ceil((totalCount || 0) / pageSize)}`
+                                ) : (
+                                    `Página ${table.getState().pagination.pageIndex + 1} de ${table.getPageCount()}`
+                                )}
                             </span>
                             <button
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
+                                onClick={() => {
+                                    if (serverSidePagination && onPageChange) {
+                                        onPageChange(currentPage + 1);
+                                    } else {
+                                        table.nextPage();
+                                    }
+                                }}
+                                disabled={serverSidePagination ? currentPage >= Math.ceil((totalCount || 0) / pageSize) : !table.getCanNextPage()}
                             >
                                 Siguiente
                             </button>
@@ -149,13 +188,20 @@ export function DataTable<TData, TValue>({
                         <div className="flex items-center space-x-2">
                             <span className="text-sm text-gray-700">Mostrar</span>
                             <select
-                                value={table.getState().pagination.pageSize}
-                                onChange={(e) => table.setPageSize(Number(e.target.value))}
-                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                value={serverSidePagination ? pageSize : table.getState().pagination.pageSize}
+                                onChange={(e) => {
+                                    const newPageSize = Number(e.target.value);
+                                    if (serverSidePagination && onPageSizeChange) {
+                                        onPageSizeChange(newPageSize);
+                                    } else {
+                                        table.setPageSize(newPageSize);
+                                    }
+                                }}
+                                className="text-gray-700 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                                {[10, 20, 30, 40, 50].map((pageSize) => (
-                                    <option key={pageSize} value={pageSize}>
-                                        {pageSize}
+                                {[20, 50, 100, 200].map((size) => (
+                                    <option key={size} value={size}>
+                                        {size}
                                     </option>
                                 ))}
                             </select>
