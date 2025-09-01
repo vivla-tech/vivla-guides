@@ -37,16 +37,23 @@ export function createApiClient(baseUrl: string) {
       headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
       ...init,
     });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok || (body as any)?.success === false) {
-      const err = (body as ErrorResponse)?.error || { message: `HTTP ${res.status}` } as any;
+    
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      body = { success: false };
+    }
+    
+    if (!res.ok || (body as { success?: boolean })?.success === false) {
+      const err = (body as ErrorResponse)?.error || { message: `HTTP ${res.status}` } as ErrorResponse['error'];
       throw new Error(err.message);
     }
     return body as T;
   }
 
-  const q = (params?: Record<string, any>) =>
-    params ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null) as any).toString() : '';
+  const q = (params?: Record<string, unknown>) =>
+    params ? '?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null) as [string, string][]).toString() : '';
 
   return {
     // ===== CRUD GENÉRICOS =====
@@ -54,12 +61,12 @@ export function createApiClient(baseUrl: string) {
       request<ListResponse<T>>(`/${resource}${q(params)}`),
     getById: <T>(resource: string, id: string) =>
       request<ItemResponse<T>>(`/${resource}/${id}`),
-    create: <T>(resource: string, payload: any) =>
+    create: <T>(resource: string, payload: unknown) =>
       request<ItemResponse<T>>(`/${resource}`, { method: 'POST', body: JSON.stringify(payload) }),
-    update: <T>(resource: string, id: string, payload: any) =>
+    update: <T>(resource: string, id: string, payload: unknown) =>
       request<ItemResponse<T>>(`/${resource}/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     remove: (resource: string, id: string) =>
-      request<{}>(`/${resource}/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/${resource}/${id}`, { method: 'DELETE' }),
 
     // ===== ENDPOINTS ESPECÍFICOS VIVLA GUIDES =====
     
@@ -73,7 +80,7 @@ export function createApiClient(baseUrl: string) {
     updateHome: (id: string, payload: Partial<CreateHome>) =>
       request<ItemResponse<Home>>(`/homes/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteHome: (id: string) =>
-      request<{}>(`/homes/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/homes/${id}`, { method: 'DELETE' }),
 
     // ROOMS (Habitaciones)
     listRooms: (params?: { page?: number; pageSize?: number; home_id?: string }) =>
@@ -85,7 +92,7 @@ export function createApiClient(baseUrl: string) {
     updateRoom: (id: string, payload: Partial<CreateRoom>) =>
       request<ItemResponse<Room>>(`/rooms/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteRoom: (id: string) =>
-      request<{}>(`/rooms/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/rooms/${id}`, { method: 'DELETE' }),
 
     // ROOM TYPES (Tipos de Habitación)
     listRoomTypes: (params?: { page?: number; pageSize?: number }) =>
@@ -97,7 +104,7 @@ export function createApiClient(baseUrl: string) {
     updateRoomType: (id: string, payload: Partial<CreateRoomType>) =>
       request<ItemResponse<RoomType>>(`/rooms-type/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteRoomType: (id: string) =>
-      request<{}>(`/rooms-type/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/rooms-type/${id}`, { method: 'DELETE' }),
 
     // CATEGORIES (Categorías)
     listCategories: (params?: { page?: number; pageSize?: number }) =>
@@ -109,7 +116,7 @@ export function createApiClient(baseUrl: string) {
     updateCategory: (id: string, payload: Partial<CreateCategory>) =>
       request<ItemResponse<Category>>(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteCategory: (id: string) =>
-      request<{}>(`/categories/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/categories/${id}`, { method: 'DELETE' }),
 
     // BRANDS (Marcas)
     listBrands: (params?: { page?: number; pageSize?: number }) =>
@@ -121,7 +128,7 @@ export function createApiClient(baseUrl: string) {
     updateBrand: (id: string, payload: Partial<CreateBrand>) =>
       request<ItemResponse<Brand>>(`/brands/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteBrand: (id: string) =>
-      request<{}>(`/brands/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/brands/${id}`, { method: 'DELETE' }),
 
     // AMENITIES (Productos)
     listAmenities: (params?: { page?: number; pageSize?: number; category_id?: string; brand_id?: string }) =>
@@ -133,7 +140,7 @@ export function createApiClient(baseUrl: string) {
     updateAmenity: (id: string, payload: Partial<CreateAmenity>) =>
       request<ItemResponse<Amenity>>(`/amenities/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteAmenity: (id: string) =>
-      request<{}>(`/amenities/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/amenities/${id}`, { method: 'DELETE' }),
 
     // INVENTORY (Inventario)
     listInventory: (params?: { page?: number; pageSize?: number; home_id?: string; amenity_id?: string; room_id?: string }) =>
@@ -145,7 +152,7 @@ export function createApiClient(baseUrl: string) {
     updateInventory: (id: string, payload: Partial<CreateInventory>) =>
       request<ItemResponse<HomeInventory>>(`/home-inventory/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteInventory: (id: string) =>
-      request<{}>(`/home-inventory/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/home-inventory/${id}`, { method: 'DELETE' }),
 
     // SUPPLIERS (Proveedores)
     listSuppliers: (params?: { page?: number; pageSize?: number }) =>
@@ -157,7 +164,7 @@ export function createApiClient(baseUrl: string) {
     updateSupplier: (id: string, payload: Partial<CreateSupplier>) =>
       request<ItemResponse<Supplier>>(`/suppliers/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteSupplier: (id: string) =>
-      request<{}>(`/suppliers/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/suppliers/${id}`, { method: 'DELETE' }),
 
     // STYLING GUIDES (Guías de Estilo)
     listStylingGuides: (params?: { page?: number; pageSize?: number; room_id?: string }) =>
@@ -169,7 +176,7 @@ export function createApiClient(baseUrl: string) {
     updateStylingGuide: (id: string, payload: Partial<CreateStylingGuide>) =>
       request<ItemResponse<StylingGuide>>(`/styling-guides/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteStylingGuide: (id: string) =>
-      request<{}>(`/styling-guides/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/styling-guides/${id}`, { method: 'DELETE' }),
 
     // PLAYBOOKS (Playbooks)
     listPlaybooks: (params?: { page?: number; pageSize?: number; room_id?: string }) =>
@@ -181,7 +188,7 @@ export function createApiClient(baseUrl: string) {
     updatePlaybook: (id: string, payload: Partial<CreatePlaybook>) =>
       request<ItemResponse<Playbook>>(`/playbooks/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deletePlaybook: (id: string) =>
-      request<{}>(`/playbooks/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/playbooks/${id}`, { method: 'DELETE' }),
 
     // APPLIANCE GUIDES (Guías de Electrodomésticos)
     listApplianceGuides: (params?: { page?: number; pageSize?: number; home_id?: string }) =>
@@ -193,7 +200,7 @@ export function createApiClient(baseUrl: string) {
     updateApplianceGuide: (id: string, payload: Partial<CreateApplianceGuide>) =>
       request<ItemResponse<ApplianceGuide>>(`/appliance-guides/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteApplianceGuide: (id: string) =>
-      request<{}>(`/appliance-guides/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/appliance-guides/${id}`, { method: 'DELETE' }),
 
     // TECHNICAL PLANS (Planos Técnicos)
     listTechnicalPlans: (params?: { page?: number; pageSize?: number; home_id?: string }) =>
@@ -205,7 +212,7 @@ export function createApiClient(baseUrl: string) {
     updateTechnicalPlan: (id: string, payload: Partial<CreateTechnicalPlan>) =>
       request<ItemResponse<TechnicalPlan>>(`/technical-plans/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteTechnicalPlan: (id: string) =>
-      request<{}>(`/technical-plans/${id}`, { method: 'DELETE' }),
+      request<Record<string, never>>(`/technical-plans/${id}`, { method: 'DELETE' }),
 
 
     // ===== ENDPOINTS ESPECIALES =====
@@ -220,11 +227,11 @@ export function createApiClient(baseUrl: string) {
 
     // ===== ENDPOINTS LEGACY (mantener compatibilidad) =====
     listStylingGuidesByHome: (homeId: string, params?: { page?: number; pageSize?: number }) =>
-      request<ListResponse<any>>(`/styling-guides${q({ home_id: homeId, ...params })}`),
+      request<ListResponse<StylingGuide>>(`/styling-guides${q({ home_id: homeId, ...params })}`),
     listPlaybooksByHome: (homeId: string, params?: { page?: number; pageSize?: number }) =>
-      request<ListResponse<any>>(`/playbooks${q({ home_id: homeId, ...params })}`),
+      request<ListResponse<Playbook>>(`/playbooks${q({ home_id: homeId, ...params })}`),
     listApplianceGuidesByHome: (homeId: string) =>
-      request<{ success: true; data: any[] }>(`/appliance-guides/by-home/${homeId}`),
+      request<{ success: true; data: ApplianceGuide[] }>(`/appliance-guides/by-home/${homeId}`),
 
     linkApplianceGuide: (homeId: string, guideId: string) =>
       request<{ success: true }>(`/appliance-guides/link`, {
