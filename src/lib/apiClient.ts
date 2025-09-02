@@ -90,6 +90,8 @@ export function createApiClient(baseUrl: string) {
       request<ListResponse<HomeWithCompleteness>>(`/homes/with-completeness${q(params)}`),
     listHomesCompleteness: () =>
       request<ItemResponse<HomesCompletenessReport>>(`/homes/completeness`),
+    listDestinations: () =>
+      request<{ success: true; data: string[] }>(`/homes/destinations`),
     createHome: (payload: CreateHome) =>
       request<ItemResponse<Home>>(`/homes`, { method: 'POST', body: JSON.stringify(payload) }),
     getHomeById: (id: string) =>

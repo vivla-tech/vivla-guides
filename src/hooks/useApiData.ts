@@ -4,7 +4,7 @@ import { config } from '@/lib/config';
 
 // Hook personalizado para cargar datos de la API
 export function useApiData<T>(
-  endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms' | 'homes/with-completeness',
+  endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms' | 'homes/with-completeness' | 'homes/destinations',
   params?: { page?: number; pageSize?: number }
 ) {
   const [data, setData] = useState<T[]>([]);
@@ -34,6 +34,16 @@ export function useApiData<T>(
         case 'homes/with-completeness':
           response = await apiClient.listHomesWithCompleteness(params);
           break;
+        case 'homes/destinations': {
+          const r = await apiClient.listDestinations();
+          if (r.success) {
+            setData(r.data as T[]);
+            setMeta(null);
+          } else {
+            setError('Error al cargar datos');
+          }
+          return; // Salir temprano: este endpoint no tiene meta
+        }
         case 'rooms-type':
           response = await apiClient.listRoomTypes(params);
           break;

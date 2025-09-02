@@ -1,61 +1,74 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { HomeWithCompleteness } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
 
-interface HomeStats {
-  rooms_count: number;
-  inventory_count: number;
-  styling_guides_count: number;
-  appliance_guides_count: number;
-  technical_plans_count: number;
-}
+
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  // Debounce del término de búsqueda (300ms)
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearchQuery(searchQuery), 450);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+  // Solo activar búsqueda si hay 3+ caracteres
+  const effectiveSearch = debouncedSearchQuery && debouncedSearchQuery.length >= 3 ? debouncedSearchQuery : '';
   const [destinationFilter, setDestinationFilter] = useState('');
 
   // Cargar casas con paginación
   const homesParams = useMemo(() => ({
-    page: currentPage,
-    pageSize: pageSize
-  }), [currentPage, pageSize]);
+    page: (effectiveSearch || destinationFilter) ? 1 : currentPage,
+    pageSize: (effectiveSearch || destinationFilter) ? 100 : pageSize
+  }), [currentPage, pageSize, effectiveSearch, destinationFilter]);
 
   const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<HomeWithCompleteness>('homes/with-completeness', homesParams);
+  const { data: destinations } = useApiData<string>('homes/destinations');
 
   // Filtrar casas en el frontend
   const filteredHomes = useMemo(() => {
     if (!homes) return [];
 
     return homes.filter(home => {
-      const matchesSearch = searchQuery === '' ||
-        home.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        home.address.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = effectiveSearch === '' ||
+        home.name.toLowerCase().includes(effectiveSearch.toLowerCase()) ||
+        home.address.toLowerCase().includes(effectiveSearch.toLowerCase());
 
       const matchesDestination = destinationFilter === '' ||
         home.destination === destinationFilter;
 
       return matchesSearch && matchesDestination;
     });
-  }, [homes, searchQuery, destinationFilter]);
+  }, [homes, effectiveSearch, destinationFilter]);
 
-  // Calcular estadísticas generales
-  const totalStats = useMemo(() => {
-    if (!homes) return { total_homes: 0, total_rooms: 0, total_inventory: 0, total_guides: 0 };
+  // Bloque de estadísticas eliminado por no utilizarse
 
-    return {
-      total_homes: homesMeta?.total || homes.length,
-      total_rooms: homes.length * 5, // Estimación
-      total_inventory: homes.length * 10, // Estimación
-      total_guides: homes.length * 3, // Estimación
-    };
-  }, [homes, homesMeta]);
+  // Paginación en cliente cuando hay búsqueda o filtro de destino
+  const useClientPagination = Boolean(effectiveSearch || destinationFilter);
+  const clientTotalPages = useMemo(() => {
+    if (!useClientPagination) return 1;
+    return Math.max(1, Math.ceil(filteredHomes.length / pageSize));
+  }, [useClientPagination, filteredHomes.length, pageSize]);
+  const visibleHomes = useMemo(() => {
+    if (!useClientPagination) return filteredHomes;
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    return filteredHomes.slice(start, end);
+  }, [useClientPagination, filteredHomes, currentPage, pageSize]);
 
-  if (isLoadingHomes) {
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  useEffect(() => {
+    if (!isLoadingHomes) {
+      setHasLoadedOnce(true);
+    }
+  }, [isLoadingHomes]);
+
+  if (!hasLoadedOnce && isLoadingHomes) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
@@ -92,64 +105,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Estadísticas Generales */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Casas</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStats.total_homes}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Habitaciones</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStats.total_rooms}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Inventario</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStats.total_inventory}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Guías</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStats.total_guides}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Bloque de estadísticas eliminado */}
 
         {/* Filtros y Búsqueda */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -166,6 +122,12 @@ export default function Home() {
                 placeholder="Buscar por nombre o dirección..."
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+              {hasLoadedOnce && isLoadingHomes && (
+                <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
+                  <span className="inline-block h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
+                  Actualizando resultados...
+                </div>
+              )}
             </div>
             <div className="md:w-48">
               <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-2">
@@ -174,13 +136,13 @@ export default function Home() {
               <select
                 id="destination"
                 value={destinationFilter}
-                onChange={(e) => setDestinationFilter(e.target.value)}
+                onChange={(e) => { setDestinationFilter(e.target.value); setCurrentPage(1); }}
                 className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Todos los destinos</option>
-                <option value="vacacional">Vacacional</option>
-                <option value="residencial">Residencial</option>
-                <option value="comercial">Comercial</option>
+                {destinations && destinations.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -188,7 +150,7 @@ export default function Home() {
 
         {/* Grid de Casas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredHomes.map((home) => (
+          {visibleHomes.map((home) => (
             <Link
               key={home.id}
               href={`/dashboard/${home.id}`}
@@ -256,7 +218,7 @@ export default function Home() {
         </div>
 
         {/* Paginación */}
-        {homesMeta && homesMeta.totalPages > 1 && (
+        {(useClientPagination ? clientTotalPages > 1 : (homesMeta && homesMeta.totalPages > 1)) && (
           <div className="mt-8 flex justify-center">
             <div className="flex items-center space-x-2">
               <button
@@ -267,11 +229,11 @@ export default function Home() {
                 Anterior
               </button>
               <span className="text-sm text-gray-700">
-                Página {currentPage} de {homesMeta.totalPages}
+                Página {currentPage} de {useClientPagination ? clientTotalPages : homesMeta!.totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage >= homesMeta.totalPages}
+                disabled={currentPage >= (useClientPagination ? clientTotalPages : homesMeta!.totalPages)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Siguiente

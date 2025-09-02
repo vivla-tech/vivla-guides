@@ -7,6 +7,7 @@ import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
+import { useApiData } from '@/hooks/useApiData';
 
 // Esquema de validación para editar una casa
 const editHomeSchema = z.object({
@@ -30,7 +31,7 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const apiClient = createApiClient(config.apiUrl);
-
+    const { data: destinations } = useApiData<string>('homes/destinations');
 
 
     const {
@@ -110,10 +111,13 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
                 placeholder="Selecciona un destino"
                 required
             >
-                <option value="vacacional">Vacacional</option>
-                <option value="residencial">Residencial</option>
-                <option value="comercial">Comercial</option>
-                <option value="mixto">Mixto</option>
+                <option value="">Selecciona un destino</option>
+                {(destinations && destinations.length > 0
+                    ? destinations
+                    : ['vacacional', 'residencial', 'comercial', 'mixto']
+                ).map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                ))}
             </Input>
 
             {/* Dirección */}

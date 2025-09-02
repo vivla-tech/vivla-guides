@@ -53,6 +53,7 @@ export default function CreateHomePage() {
     }), [currentPage, pageSize]);
 
     const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes', homesParams);
+    const { data: destinations } = useApiData<string>('homes/destinations');
 
     const apiClient = createApiClient(config.apiUrl);
 
@@ -247,10 +248,13 @@ export default function CreateHomePage() {
                             placeholder="Selecciona un destino"
                             required
                         >
-                            <option value="vacacional">Vacacional</option>
-                            <option value="residencial">Residencial</option>
-                            <option value="comercial">Comercial</option>
-                            <option value="mixto">Mixto</option>
+                            <option value="">Selecciona un destino</option>
+                            {(destinations && destinations.length > 0
+                                ? destinations
+                                : ['vacacional', 'residencial', 'comercial', 'mixto']
+                            ).map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                            ))}
                         </Input>
 
                         {/* Dirección */}
