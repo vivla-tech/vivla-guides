@@ -93,6 +93,13 @@ export interface HomeInventory {
   updated_at: Date;
 }
 
+// 8.1. HOME_INVENTORY con relaciones (para respuestas de API)
+export interface HomeInventoryWithRelations extends HomeInventory {
+  amenity?: Amenity;             // Relación con el amenity
+  room?: Room;                   // Relación con la habitación
+  supplier?: Supplier;           // Relación con el proveedor
+}
+
 // 9. STYLING_GUIDE (Guías de Estilo)
 export interface StylingGuide {
   id: string;                    // UUID

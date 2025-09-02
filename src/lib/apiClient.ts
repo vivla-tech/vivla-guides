@@ -20,6 +20,7 @@ import {
   CreateInventory,
   CreateStylingGuide,
   HomeInventory,
+  HomeInventoryWithRelations,
   StylingGuide,
   Playbook,
   CreatePlaybook,
@@ -154,13 +155,13 @@ export function createApiClient(baseUrl: string) {
 
     // INVENTORY (Inventario)
     listInventory: (params?: { page?: number; pageSize?: number; home_id?: string; amenity_id?: string; room_id?: string }) =>
-      request<ListResponse<HomeInventory>>(`/home-inventory${q(params)}`),
+      request<ListResponse<HomeInventoryWithRelations>>(`/home-inventory${q(params)}`),
     createInventory: (payload: CreateInventory) =>
-      request<ItemResponse<HomeInventory>>(`/home-inventory`, { method: 'POST', body: JSON.stringify(payload) }),
+      request<ItemResponse<HomeInventoryWithRelations>>(`/home-inventory`, { method: 'POST', body: JSON.stringify(payload) }),
     getInventoryById: (id: string) =>
-      request<ItemResponse<HomeInventory>>(`/home-inventory/${id}`),
+      request<ItemResponse<HomeInventoryWithRelations>>(`/home-inventory/${id}`),
     updateInventory: (id: string, payload: Partial<CreateInventory>) =>
-      request<ItemResponse<HomeInventory>>(`/home-inventory/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+      request<ItemResponse<HomeInventoryWithRelations>>(`/home-inventory/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
     deleteInventory: (id: string) =>
       request<Record<string, never>>(`/home-inventory/${id}`, { method: 'DELETE' }),
 
