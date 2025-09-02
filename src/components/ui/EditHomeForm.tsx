@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -38,6 +38,7 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm<EditHomeFormData>({
         resolver: zodResolver(editHomeSchema),
         defaultValues: {
@@ -46,6 +47,17 @@ export function EditHomeForm({ home, imageUrls, onImageUrlsChange, onClose, onSu
             address: home.address,
         },
     });
+
+    // Reset form when destinations are loaded to ensure destination select shows correct value
+    useEffect(() => {
+        if (destinations && destinations.length > 0) {
+            reset({
+                name: home.name,
+                destination: home.destination,
+                address: home.address,
+            });
+        }
+    }, [destinations, home, reset]);
 
     const onSubmit = async (data: EditHomeFormData) => {
         setIsSubmitting(true);
