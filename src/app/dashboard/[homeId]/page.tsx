@@ -38,6 +38,7 @@ export default function HomeDetailsPage() {
     const [isItemOpen, setIsItemOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<HomeInventoryWithRelations | null>(null);
     const [selectedStylingGuide, setSelectedStylingGuide] = useState<StylingGuide | null>(null);
+    const [selectedApplianceGuide, setSelectedApplianceGuide] = useState<ApplianceGuide | null>(null);
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -422,16 +423,24 @@ export default function HomeDetailsPage() {
                         {applianceGuides.length > 0 ? (
                             <div className="space-y-3">
                                 {applianceGuides.map((guide) => (
-                                    <div key={guide.id} className="border border-gray-200 rounded-lg p-3">
-                                        <h4 className="font-medium text-gray-900">{guide.equipment_name}</h4>
-                                        <p className="text-sm text-gray-600 line-clamp-2">{guide.brief_description}</p>
-                                        <div className="mt-2 flex space-x-2 text-xs text-gray-500">
-                                            {guide.pdf_url && <span>📄 PDF</span>}
-                                            {guide.video_url && <span>🎥 Video</span>}
-                                            {guide.image_urls && guide.image_urls.length > 0 && (
-                                                <span>🖼️ {guide.image_urls.length} imágenes</span>
-                                            )}
+                                    <div key={guide.id} className="flex items-center justify-between border border-gray-200 rounded-lg p-3">
+                                        <div className="flex-1">
+                                            <h4 className="font-medium text-gray-900">{guide.equipment_name}</h4>
+                                            <p className="text-sm text-gray-600 line-clamp-2">{guide.brief_description}</p>
+                                            <div className="mt-2 flex space-x-2 text-xs text-gray-500">
+                                                {guide.pdf_url && <span>📄 PDF</span>}
+                                                {guide.video_url && <span>🎥 Video</span>}
+                                                {guide.image_urls && guide.image_urls.length > 0 && (
+                                                    <span>🖼️ {guide.image_urls.length} imágenes</span>
+                                                )}
+                                            </div>
                                         </div>
+                                        <button
+                                            onClick={() => setSelectedApplianceGuide(guide)}
+                                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex-shrink-0 ml-3"
+                                        >
+                                            Ver guía
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -484,11 +493,13 @@ export default function HomeDetailsPage() {
                             {(selectedStylingGuide as any).reference_photo_url && (
                                 <div>
                                     <h5 className="font-medium text-gray-700 mb-2">Imagen de referencia</h5>
-                                    <img
-                                        src={(selectedStylingGuide as any).reference_photo_url}
-                                        alt="Imagen de referencia"
-                                        className="w-full max-h-64 object-cover rounded"
-                                    />
+                                    <div className="flex justify-center">
+                                        <img
+                                            src={(selectedStylingGuide as any).reference_photo_url}
+                                            alt="Imagen de referencia"
+                                            className="max-w-full max-h-96 object-contain rounded shadow-sm"
+                                        />
+                                    </div>
                                 </div>
                             )}
 
@@ -496,14 +507,15 @@ export default function HomeDetailsPage() {
                             {selectedStylingGuide.image_urls && selectedStylingGuide.image_urls.length > 0 && (
                                 <div>
                                     <h5 className="font-medium text-gray-700 mb-2">Galería de imágenes ({selectedStylingGuide.image_urls.length})</h5>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 gap-3">
                                         {selectedStylingGuide.image_urls.map((image, index) => (
-                                            <img
-                                                key={index}
-                                                src={image}
-                                                alt={`Imagen ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded"
-                                            />
+                                            <div key={index} className="flex justify-center">
+                                                <img
+                                                    src={image}
+                                                    alt={`Imagen ${index + 1}`}
+                                                    className="max-w-full max-h-96 object-contain rounded shadow-sm"
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -544,6 +556,92 @@ export default function HomeDetailsPage() {
                                     </div>
                                 );
                             })()}
+                        </div>
+                    </div>
+                </Modal>
+            )}
+
+            {selectedApplianceGuide && (
+                <Modal
+                    isOpen={!!selectedApplianceGuide}
+                    onClose={() => setSelectedApplianceGuide(null)}
+                    title="Guía de Electrodoméstico"
+                >
+                    <div className="p-6 max-h-[80vh] overflow-y-auto">
+                        <div className="space-y-6">
+                            {/* Información del equipo */}
+                            <div className="border-b border-gray-200 pb-4">
+                                <h4 className="font-medium text-gray-900 mb-2">{selectedApplianceGuide.equipment_name}</h4>
+                                <p className="text-sm text-gray-600 mb-2">{selectedApplianceGuide.brief_description}</p>
+                                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                    <span>Modelo: {selectedApplianceGuide.model}</span>
+                                    {selectedApplianceGuide.brand_id && (
+                                        <span>Marca: {selectedApplianceGuide.brand_id}</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Galería de imágenes */}
+                            {selectedApplianceGuide.image_urls && selectedApplianceGuide.image_urls.length > 0 && (
+                                <div>
+                                    <h5 className="font-medium text-gray-700 mb-2">Galería de imágenes ({selectedApplianceGuide.image_urls.length})</h5>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {selectedApplianceGuide.image_urls.map((image, index) => (
+                                            <div key={index} className="flex justify-center">
+                                                <img
+                                                    src={image}
+                                                    alt={`Imagen ${index + 1}`}
+                                                    className="max-w-full max-h-48 object-contain rounded shadow-sm"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Uso rápido */}
+                            {selectedApplianceGuide.quick_use_bullets && (
+                                <div>
+                                    <h5 className="font-medium text-gray-700 mb-2">⚡ Uso rápido</h5>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <p className="text-sm text-gray-800 whitespace-pre-line">{selectedApplianceGuide.quick_use_bullets}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Mantenimiento */}
+                            {selectedApplianceGuide.maintenance_bullets && (
+                                <div>
+                                    <h5 className="font-medium text-gray-700 mb-2">🔧 Mantenimiento</h5>
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <p className="text-sm text-gray-800 whitespace-pre-line">{selectedApplianceGuide.maintenance_bullets}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Enlaces */}
+                            <div className="flex flex-wrap gap-2">
+                                {selectedApplianceGuide.pdf_url && (
+                                    <a
+                                        href={selectedApplianceGuide.pdf_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                    >
+                                        📄 Ver PDF
+                                    </a>
+                                )}
+                                {selectedApplianceGuide.video_url && (
+                                    <a
+                                        href={selectedApplianceGuide.video_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center px-3 py-2 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                                    >
+                                        🎥 Ver Video
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </Modal>
