@@ -14,6 +14,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { EditPlaybookForm } from '@/components/ui/EditPlaybookForm';
 import { DeletePlaybookConfirmation } from '@/components/ui/DeletePlaybookConfirmation';
 
+
+
 // Esquema de validación para crear un playbook
 const createPlaybookSchema = z.object({
     room_id: z.string().min(1, 'Debes seleccionar una habitación'),
@@ -30,7 +32,7 @@ export default function CreatePlaybookPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-    const { data: rooms } = useApiData<Room>('rooms');
+    const { data: rooms } = useApiData<Room>('rooms', { page: 1, pageSize: 100 });
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 

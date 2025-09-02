@@ -51,9 +51,9 @@ export default function CreateInventoryPage() {
     const [deletingInventory, setDeletingInventory] = useState<HomeInventoryWithRelations | null>(null);
 
     // Datos auxiliares
-    const { data: homes } = useApiData<Home>('homes');
+    const { data: homes } = useApiData<Home>('homes', { page: 1, pageSize: 100 });
     const { data: amenities } = useApiData<Amenity>('amenities');
-    const { data: rooms } = useApiData<Room>('rooms');
+    const { data: rooms } = useApiData<Room>('rooms', { page: 1, pageSize: 100 });
     const { data: suppliers } = useApiData<Supplier>('suppliers');
 
     // Estado y carga del inventario (API directa)

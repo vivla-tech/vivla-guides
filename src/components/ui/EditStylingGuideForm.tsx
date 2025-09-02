@@ -28,7 +28,7 @@ interface EditStylingGuideFormProps {
 
 export function EditStylingGuideForm({ guide, onClose, onSuccess }: EditStylingGuideFormProps) {
     const apiClient = createApiClient(config.apiUrl);
-    const { data: rooms } = useApiData<Room>('rooms');
+    const { data: rooms } = useApiData<Room>('rooms', { page: 1, pageSize: 100 });
 
     const [imageUrls, setImageUrls] = useState<string[]>(guide.image_urls || []);
     const [isSubmitting, setIsSubmitting] = useState(false);

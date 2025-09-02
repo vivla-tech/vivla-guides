@@ -25,7 +25,7 @@ export default function CreateRoomPage() {
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const { data: roomTypes, isLoading: isLoadingRoomTypes, error: roomTypesError } = useApiData<RoomType>('rooms-type');
-    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes');
+    const { data: homes, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes', { page: 1, pageSize: 100 });
     const apiClient = createApiClient(config.apiUrl);
 
 

@@ -28,7 +28,7 @@ interface EditPlaybookFormProps {
 
 export function EditPlaybookForm({ playbook, onClose, onSuccess }: EditPlaybookFormProps) {
     const apiClient = createApiClient(config.apiUrl);
-    const { data: rooms } = useApiData<Room>('rooms');
+    const { data: rooms } = useApiData<Room>('rooms', { page: 1, pageSize: 100 });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);

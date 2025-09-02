@@ -28,7 +28,7 @@ export default function CreateStylingGuidePage() {
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
 
-    const { data: rooms } = useApiData<Room>('rooms');
+    const { data: rooms } = useApiData<Room>('rooms', { page: 1, pageSize: 100 });
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
