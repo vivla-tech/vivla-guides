@@ -21,6 +21,10 @@ export default function HomeInventoryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [roomFilter, setRoomFilter] = useState<string>('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(24);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -34,16 +38,18 @@ export default function HomeInventoryPage() {
                 // Cargar datos en paralelo
                 const [homeResponse, inventoryResponse, roomsResponse] = await Promise.all([
                     apiClient.getHomeById(homeId),
-                    apiClient.listInventory({ home_id: homeId }),
+                    apiClient.listInventory({ home_id: homeId, page: currentPage, pageSize }),
                     apiClient.listRoomsByHome(homeId)
                 ]);
+
+                setTotal(inventoryResponse.meta?.total || (inventoryResponse.data || []).length);
+                setTotalPages(inventoryResponse.meta?.totalPages || 1);
 
                 console.log('📊 Datos cargados:', {
                     home: homeResponse.data?.name,
                     inventoryCount: inventoryResponse.data?.length || 0,
                     roomsCount: roomsResponse.data?.length || 0,
-                    inventory: inventoryResponse.data,
-                    rooms: roomsResponse.data
+                    meta: inventoryResponse.meta
                 });
 
                 // Debug específico del inventario
@@ -72,7 +78,7 @@ export default function HomeInventoryPage() {
         if (homeId) {
             loadInventoryDetails();
         }
-    }, [homeId, apiClient]);
+    }, [homeId, apiClient, currentPage, pageSize]);
 
     // Filtrar inventario por habitación
     const filteredInventory = inventoryDetails?.inventory.filter(item =>
@@ -184,9 +190,20 @@ export default function HomeInventoryPage() {
                                 ))}
                             </select>
                         </div>
-                        <div className="flex items-end">
+                        <div className="flex items-end justify-between flex-1">
                             <div className="text-sm text-gray-600">
-                                Mostrando {filteredInventory.length} de {inventory.length} items
+                                Mostrando {filteredInventory.length} items
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <select
+                                    value={pageSize}
+                                    onChange={(e) => { setCurrentPage(1); setPageSize(parseInt(e.target.value, 10)); }}
+                                    className="px-2 py-1 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value={12}>12</option>
+                                    <option value={24}>24</option>
+                                    <option value={48}>48</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -335,6 +352,31 @@ export default function HomeInventoryPage() {
                         <p className="mt-1 text-sm text-gray-500">
                             {roomFilter ? 'No hay items en la habitación seleccionada.' : 'Aún no se ha registrado inventario para esta casa.'}
                         </p>
+                    </div>
+                )}
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                    <div className="mt-6 flex justify-center">
+                        <div className="flex items-center space-x-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage <= 1}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <span className="text-sm text-gray-700">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage >= totalPages}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Home, Room, HomeInventoryWithRelations, StylingGuide, ApplianceGuide, TechnicalPlan, Category } from '@/lib/types';
+import { Modal } from '@/components/ui/Modal';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import Link from 'next/link';
@@ -32,6 +33,8 @@ export default function HomeDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [categoryFilter, setCategoryFilter] = useState<string>('');
+    const [isItemOpen, setIsItemOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<HomeInventoryWithRelations | null>(null);
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -245,7 +248,7 @@ export default function HomeDetailsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {filteredInventory.map((item) => {
+                                    {filteredInventory.slice(0, 5).map((item) => {
                                         const roomName = rooms.find(r => r.id === item.room_id)?.name || 'Sin asignar';
                                         const categoryName = item.amenity?.category?.name
                                             ?? (item.amenity?.category_id
@@ -264,7 +267,7 @@ export default function HomeDetailsPage() {
                                                             ) : null}
                                                         </div>
                                                         <div>
-                                                            <div className="text-sm font-medium text-gray-900">{item.amenity?.name || `ID: ${item.amenity_id}`}</div>
+                                                            <div className="text-sm font-medium text-gray-900 max-w-[220px] truncate" title={item.amenity?.name || `ID: ${item.amenity_id}`}>{item.amenity?.name || `ID: ${item.amenity_id}`}</div>
                                                             <div className="text-xs text-gray-500">{item.amenity?.reference} {item.amenity?.model && `· ${item.amenity.model}`}</div>
                                                         </div>
                                                     </div>
@@ -276,25 +279,95 @@ export default function HomeDetailsPage() {
                                                 <td className="px-4 py-2 text-sm text-gray-700">{price !== null ? `€${price.toFixed(2)}` : '-'}</td>
                                                 <td className="px-4 py-2 text-sm text-gray-700">{item.location_details || '-'}</td>
                                                 <td className="px-4 py-2 text-right text-sm">
-                                                    <Link href={`/dashboard/${homeId}/inventory`} className="text-blue-600 hover:text-blue-800">Ver</Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setSelectedItem(item); setIsItemOpen(true); }}
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                    >
+                                                        Ver
+                                                    </button>
                                                 </td>
                                             </tr>
                                         );
                                     })}
                                 </tbody>
                             </table>
-                            {filteredInventory.length > 10 && (
-                                <div className="text-center pt-3">
-                                    <Link href={`/dashboard/${homeId}/inventory`} className="text-blue-600 hover:text-blue-800 text-sm">
-                                        Ver todos los {filteredInventory.length} items →
-                                    </Link>
-                                </div>
-                            )}
+                            <div className="text-center pt-3">
+                                <Link href={`/dashboard/${homeId}/inventory`} className="inline-flex items-center px-3 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                                    Ver más productos
+                                </Link>
+                            </div>
                         </div>
                     ) : (
                         <p className="text-gray-500">No hay inventario {categoryFilter ? 'para esta categoría' : ''}.</p>
                     )}
                 </div>
+
+                {/* Modal detalle de item */}
+                <Modal
+                    isOpen={isItemOpen}
+                    onClose={() => { setIsItemOpen(false); setSelectedItem(null); }}
+                    title={'Detalle de producto'}
+                >
+                    {selectedItem && (
+                        <div className="space-y-4">
+                            <div className="flex items-start space-x-4">
+                                <div className="w-24 h-24 bg-gray-200 rounded overflow-hidden">
+                                    {selectedItem.amenity?.images && selectedItem.amenity.images[0] ? (
+                                        <img src={selectedItem.amenity.images[0]} alt={selectedItem.amenity.name} className="w-full h-full object-cover" />
+                                    ) : null}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="text-base font-semibold text-gray-900 break-words line-clamp-2">
+                                        {selectedItem.amenity?.name || `ID: ${selectedItem.amenity_id}`}
+                                    </div>
+                                    <div className="mt-1 flex items-center space-x-2">
+                                        <span className="text-xs text-gray-500 uppercase">Categoría</span>
+                                        <span className="text-sm font-medium text-gray-800">{selectedItem.amenity?.category?.name || '-'}</span>
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                        {selectedItem.amenity?.reference} {selectedItem.amenity?.model && `· ${selectedItem.amenity.model}`}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Marca</div>
+                                    <div className="text-sm font-medium text-gray-800">{selectedItem.amenity?.brand?.name || '-'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Espacio</div>
+                                    <div className="text-sm font-medium text-gray-800">{rooms.find(r => r.id === selectedItem.room_id)?.name || 'Sin asignar'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Cantidad</div>
+                                    <div className="text-sm font-medium text-gray-800">{selectedItem.quantity ?? 0}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Precio compra</div>
+                                    <div className="text-sm font-medium text-gray-800">{typeof selectedItem.purchase_price === 'number' ? `€${selectedItem.purchase_price.toFixed(2)}` : '-'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Ubicación</div>
+                                    <div className="text-sm font-medium text-gray-800">{selectedItem.location_details || '-'}</div>
+                                </div>
+                            </div>
+
+                            {selectedItem.notes && (
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase">Notas</div>
+                                    <div className="text-sm text-gray-800">{selectedItem.notes}</div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end space-x-3 pt-2">
+                                <Link href={`/dashboard/${homeId}/inventory`} className="text-sm text-blue-600 hover:text-blue-800">Ver en inventario completo</Link>
+                                {/* Aquí podríamos añadir un botón Editar si procede */}
+                            </div>
+                        </div>
+                    )}
+                </Modal>
 
                 {/* Guías Disponibles */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
