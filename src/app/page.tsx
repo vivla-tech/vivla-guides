@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Home } from '@/lib/types';
+import type { HomeWithCompleteness } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
 
@@ -25,7 +25,7 @@ export default function Home() {
     pageSize: pageSize
   }), [currentPage, pageSize]);
 
-  const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<Home>('homes', homesParams);
+  const { data: homes, meta: homesMeta, isLoading: isLoadingHomes, error: homesError } = useApiData<HomeWithCompleteness>('homes/with-completeness', homesParams);
 
   // Filtrar casas en el frontend
   const filteredHomes = useMemo(() => {
@@ -164,7 +164,7 @@ export default function Home() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar por nombre o dirección..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div className="md:w-48">
@@ -175,7 +175,7 @@ export default function Home() {
                 id="destination"
                 value={destinationFilter}
                 onChange={(e) => setDestinationFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Todos los destinos</option>
                 <option value="vacacional">Vacacional</option>
@@ -228,16 +228,26 @@ export default function Home() {
 
                 <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
                   <div className="text-center">
-                    <div className="font-medium">5</div>
+                    <div className="font-medium">{home.counts?.rooms ?? 0}</div>
                     <div>Habit.</div>
                   </div>
                   <div className="text-center">
-                    <div className="font-medium">12</div>
+                    <div className="font-medium">{home.counts?.inventory ?? 0}</div>
                     <div>Items</div>
                   </div>
                   <div className="text-center">
-                    <div className="font-medium">3</div>
+                    <div className="font-medium">{(home.counts?.styling_guides ?? 0) + (home.counts?.appliance_guides ?? 0) + (home.counts?.playbooks ?? 0)}</div>
                     <div>Guías</div>
+                  </div>
+                </div>
+                {/* Progreso de completitud */}
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Completitud</span>
+                    <span className="font-medium text-gray-900">{home.completeness ?? 0}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600" style={{ width: `${home.completeness ?? 0}%` }} />
                   </div>
                 </div>
               </div>

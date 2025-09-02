@@ -174,3 +174,22 @@ export type ListMeta = { page: number; pageSize: number; total: number; totalPag
 export type ListResponse<T> = { success: true; data: T[]; meta: ListMeta };
 export type ItemResponse<T> = { success: true; data: T };
 export type ErrorResponse = { success: false; error: { message: string; details?: { field?: string; message: string }[] } };
+
+// ===== TIPOS DE COMPLETITUD =====
+export interface HomeCountsSummary {
+  rooms: number;
+  technical_plans: number;
+  appliance_guides: number;
+  inventory: number;
+  styling_guides: number;
+  playbooks: number;
+}
+
+export interface HomeWithCompleteness extends Home {
+  completeness: number; // 0-100
+  present: string[];
+  missing: string[];
+  counts: HomeCountsSummary;
+}
+
+export type HomesCompletenessReport = Record<string, number>; // home_id -> completeness

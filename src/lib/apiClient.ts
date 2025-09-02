@@ -27,7 +27,9 @@ import {
   ApplianceGuide,
   CreateApplianceGuide,
   TechnicalPlan,
-  CreateTechnicalPlan
+  CreateTechnicalPlan,
+  HomeWithCompleteness,
+  HomesCompletenessReport
 } from './types';
 
 export type { ListMeta, ListResponse, ItemResponse, ErrorResponse };
@@ -84,6 +86,10 @@ export function createApiClient(baseUrl: string) {
     // HOMES (Casas)
     listHomes: (params?: { page?: number; pageSize?: number }) =>
       request<ListResponse<Home>>(`/homes${q(params)}`),
+    listHomesWithCompleteness: (params?: { page?: number; pageSize?: number }) =>
+      request<ListResponse<HomeWithCompleteness>>(`/homes/with-completeness${q(params)}`),
+    listHomesCompleteness: () =>
+      request<ItemResponse<HomesCompletenessReport>>(`/homes/completeness`),
     createHome: (payload: CreateHome) =>
       request<ItemResponse<Home>>(`/homes`, { method: 'POST', body: JSON.stringify(payload) }),
     getHomeById: (id: string) =>
