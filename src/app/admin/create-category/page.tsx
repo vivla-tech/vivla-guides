@@ -166,136 +166,138 @@ export default function CreateCategoryPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                        Crear Nueva Categoría
-                    </h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="space-y-8">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                            Crear Nueva Categoría
+                        </h1>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Nombre de la categoría */}
-                        <Input
-                            label="Nombre de la Categoría"
-                            register={register('name')}
-                            error={errors.name?.message}
-                            placeholder="Ej: Electrodomésticos, Muebles, Decoración..."
-                            required
-                        />
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                            {/* Nombre de la categoría */}
+                            <Input
+                                label="Nombre de la Categoría"
+                                register={register('name')}
+                                error={errors.name?.message}
+                                placeholder="Ej: Electrodomésticos, Muebles, Decoración..."
+                                required
+                            />
 
-                        {/* Descripción */}
-                        <Input
-                            type="textarea"
-                            label="Descripción"
-                            register={register('description')}
-                            error={errors.description?.message}
-                            placeholder="Descripción detallada de la categoría y qué tipo de productos incluye..."
-                            rows={3}
-                            required
-                        />
+                            {/* Descripción */}
+                            <Input
+                                type="textarea"
+                                label="Descripción"
+                                register={register('description')}
+                                error={errors.description?.message}
+                                placeholder="Descripción detallada de la categoría y qué tipo de productos incluye..."
+                                rows={3}
+                                required
+                            />
 
-                        {/* Mensaje de estado */}
-                        {submitMessage && (
-                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
-                                ? 'bg-green-50 text-green-800 border border-green-200'
-                                : 'bg-red-50 text-red-800 border border-red-200'
-                                }`}>
-                                {submitMessage.message}
+                            {/* Mensaje de estado */}
+                            {submitMessage && (
+                                <div className={`p-4 rounded-md ${submitMessage.type === 'success'
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                    }`}>
+                                    {submitMessage.message}
+                                </div>
+                            )}
+
+                            {/* Botones */}
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => reset()}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                >
+                                    Limpiar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Creando...' : 'Crear Categoría'}
+                                </button>
                             </div>
-                        )}
+                        </form>
+                    </div>
 
-                        {/* Botones */}
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => reset()}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                Limpiar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isSubmitting ? 'Creando...' : 'Crear Categoría'}
-                            </button>
+                    {/* Tabla de categorías existentes */}
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                title="Categorías Existentes"
+                                columns={columns}
+                                data={categories}
+                                isLoading={isLoadingCategories}
+                                error={categoriesError}
+                                emptyMessage="No hay categorías creadas aún."
+                                // Paginación del servidor
+                                serverSidePagination={true}
+                                totalCount={categoriesMeta?.total || 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={setCurrentPage}
+                                onPageSizeChange={setPageSize}
+                                useContainer={false}
+                            />
                         </div>
-                    </form>
+                    </div>
 
+                    {/* Modal de edición */}
+                    <Modal
+                        isOpen={isEditing}
+                        onClose={() => {
+                            setIsEditing(false);
+                            setEditingCategory(null);
+                        }}
+                        title="Editar Categoría"
+                    >
+                        {editingCategory && (
+                            <EditCategoryForm
+                                category={editingCategory}
+                                onClose={() => {
+                                    setIsEditing(false);
+                                    setEditingCategory(null);
+                                }}
+                                onSuccess={() => {
+                                    setIsEditing(false);
+                                    setEditingCategory(null);
+                                    // Recargar datos
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
+                    </Modal>
+
+                    {/* Modal de eliminación */}
+                    <Modal
+                        isOpen={isDeleting}
+                        onClose={() => {
+                            setIsDeleting(false);
+                            setDeletingCategory(null);
+                        }}
+                        title="Confirmar Eliminación"
+                    >
+                        {deletingCategory && (
+                            <DeleteCategoryConfirmation
+                                category={deletingCategory}
+                                onClose={() => {
+                                    setIsDeleting(false);
+                                    setDeletingCategory(null);
+                                }}
+                                onSuccess={() => {
+                                    setIsDeleting(false);
+                                    setDeletingCategory(null);
+                                    // Recargar datos
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
+                    </Modal>
                 </div>
-
-                {/* Tabla de categorías existentes */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <DataTable
-                        title="Categorías Existentes"
-                        columns={columns}
-                        data={categories}
-                        isLoading={isLoadingCategories}
-                        error={categoriesError}
-                        emptyMessage="No hay categorías creadas aún."
-                        // Paginación del servidor
-                        serverSidePagination={true}
-                        totalCount={categoriesMeta?.total || 0}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                        onPageChange={setCurrentPage}
-                        onPageSizeChange={setPageSize}
-                        useContainer={false}
-                    />
-                </div>
-
-                {/* Modal de edición */}
-                <Modal
-                    isOpen={isEditing}
-                    onClose={() => {
-                        setIsEditing(false);
-                        setEditingCategory(null);
-                    }}
-                    title="Editar Categoría"
-                >
-                    {editingCategory && (
-                        <EditCategoryForm
-                            category={editingCategory}
-                            onClose={() => {
-                                setIsEditing(false);
-                                setEditingCategory(null);
-                            }}
-                            onSuccess={() => {
-                                setIsEditing(false);
-                                setEditingCategory(null);
-                                // Recargar datos
-                                window.location.reload();
-                            }}
-                        />
-                    )}
-                </Modal>
-
-                {/* Modal de eliminación */}
-                <Modal
-                    isOpen={isDeleting}
-                    onClose={() => {
-                        setIsDeleting(false);
-                        setDeletingCategory(null);
-                    }}
-                    title="Confirmar Eliminación"
-                >
-                    {deletingCategory && (
-                        <DeleteCategoryConfirmation
-                            category={deletingCategory}
-                            onClose={() => {
-                                setIsDeleting(false);
-                                setDeletingCategory(null);
-                            }}
-                            onSuccess={() => {
-                                setIsDeleting(false);
-                                setDeletingCategory(null);
-                                // Recargar datos
-                                window.location.reload();
-                            }}
-                        />
-                    )}
-                </Modal>
             </div>
-        </div>
-    );
+            );
 }

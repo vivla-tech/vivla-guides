@@ -243,60 +243,70 @@ export default function CreateApplianceGuidePage() {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="space-y-8">
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Crear Nueva Guía de Electrodoméstico</h1>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            <Input label="Nombre del Equipo" register={register('equipment_name')} error={errors.equipment_name?.message} placeholder="Ej: Lavadora Samsung, Nevera LG..." required />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Input label="Nombre del Equipo" register={register('equipment_name')} error={errors.equipment_name?.message} placeholder="Ej: Lavadora Samsung, Nevera LG..." required />
 
-                            <Input type="select" label="Marca" register={register('brand_id')} error={errors.brand_id?.message} placeholder="Selecciona una marca" required>
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                                ))}
-                            </Input>
+                                <Input type="select" label="Marca" register={register('brand_id')} error={errors.brand_id?.message} placeholder="Selecciona una marca" required>
+                                    {brands.map((brand) => (
+                                        <option key={brand.id} value={brand.id}>{brand.name}</option>
+                                    ))}
+                                </Input>
 
-                            <Input label="Modelo" register={register('model')} error={errors.model?.message} placeholder="Ej: WF-1000XM4, Galaxy S21..." required />
+                                <Input label="Modelo" register={register('model')} error={errors.model?.message} placeholder="Ej: WF-1000XM4, Galaxy S21..." required />
 
-                            <Input type="textarea" label="Descripción Breve" register={register('brief_description')} error={errors.brief_description?.message} placeholder="Descripción general del equipo..." rows={3} required />
+                                <div className="md:col-span-2">
+                                    <Input type="textarea" label="Descripción Breve" register={register('brief_description')} error={errors.brief_description?.message} placeholder="Descripción general del equipo..." rows={3} required />
+                                </div>
+                            </div>
 
-                            <FileUpload label="Imágenes del Electrodoméstico" onUrlsChange={setImageUrls} accept="image/*" maxFiles={10} maxSize={5} basePath="appliance-guides" />
-                            <p className="mt-1 text-sm text-gray-500">Imágenes del equipo, controles, pantallas, etc. Máximo 10 imágenes.</p>
+                            <div className="space-y-6">
+                                <FileUpload label="Imágenes del Electrodoméstico" onUrlsChange={setImageUrls} accept="image/*" maxFiles={10} maxSize={5} basePath="appliance-guides" />
+                                <p className="mt-1 text-sm text-gray-500">Imágenes del equipo, controles, pantallas, etc. Máximo 10 imágenes.</p>
 
-                            <FileUpload label="PDF del Manual" onUrlsChange={setPdfUrls} accept=".pdf" maxFiles={1} maxSize={10} basePath="appliance-guides/manuals" />
-                            <p className="mt-1 text-sm text-gray-500">Manual en PDF. Máximo 10MB.</p>
+                                <FileUpload label="PDF del Manual" onUrlsChange={setPdfUrls} accept=".pdf" maxFiles={1} maxSize={10} basePath="appliance-guides/manuals" />
+                                <p className="mt-1 text-sm text-gray-500">Manual en PDF. Máximo 10MB.</p>
 
-                            <FileUpload label="Video Tutorial" onUrlsChange={setVideoUrls} accept="video/*" maxFiles={1} maxSize={50} basePath="appliance-guides/videos" />
-                            <p className="mt-1 text-sm text-gray-500">Video tutorial. Máximo 50MB.</p>
+                                <FileUpload label="Video Tutorial" onUrlsChange={setVideoUrls} accept="video/*" maxFiles={1} maxSize={50} basePath="appliance-guides/videos" />
+                                <p className="mt-1 text-sm text-gray-500">Video tutorial. Máximo 50MB.</p>
 
-                            <Input type="textarea" label="Puntos de Uso Rápido" register={register('quick_use_bullets')} error={errors.quick_use_bullets?.message} placeholder="• Encender..." rows={3} required />
-                            <Input type="textarea" label="Puntos de Mantenimiento" register={register('maintenance_bullets')} error={errors.maintenance_bullets?.message} placeholder="• Limpiar filtros..." rows={3} required />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Input type="textarea" label="Puntos de Uso Rápido" register={register('quick_use_bullets')} error={errors.quick_use_bullets?.message} placeholder="• Encender..." rows={3} required />
+                                    <Input type="textarea" label="Puntos de Mantenimiento" register={register('maintenance_bullets')} error={errors.maintenance_bullets?.message} placeholder="• Limpiar filtros..." rows={3} required />
+                                </div>
+                            </div>
 
                             {submitMessage && (
                                 <div className={`p-4 rounded-md ${submitMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>{submitMessage.message}</div>
                             )}
 
-                            <div className="flex justify-end space-x-4">
-                                <button type="button" onClick={() => reset()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Limpiar</button>
-                                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50">{isSubmitting ? 'Creando...' : 'Crear Guía de Electrodoméstico'}</button>
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                                <button type="button" onClick={() => reset()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Limpiar</button>
+                                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? 'Creando...' : 'Crear Guía de Electrodoméstico'}</button>
                             </div>
                         </form>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h2 className="text-xl font-semibold text-gray-900 mb-6">Guías de electrodomésticos existentes {meta ? `(${meta.total})` : ''}</h2>
-                        <DataTable
-                            data={guides}
-                            columns={columns}
-                            totalCount={meta ? meta.total : 0}
-                            currentPage={currentPage}
-                            pageSize={pageSize}
-                            onPageChange={(p) => setCurrentPage(Math.max(1, p))}
-                            onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
-                            serverSidePagination={true}
-                            isLoading={isLoading}
-                            error={error}
-                            useContainer={false}
-                        />
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                data={guides}
+                                columns={columns}
+                                totalCount={meta ? meta.total : 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={(p) => setCurrentPage(Math.max(1, p))}
+                                onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+                                serverSidePagination={true}
+                                isLoading={isLoading}
+                                error={error}
+                                useContainer={false}
+                            />
+                        </div>
                     </div>
 
                     {isEditing && editingGuide && (

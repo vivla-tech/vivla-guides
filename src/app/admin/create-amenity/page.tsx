@@ -228,159 +228,168 @@ export default function CreateAmenityPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                        Crear Nuevo Amenity
-                    </h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="space-y-8">
+                    {/* Formulario */}
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                            Crear Nuevo Amenity
+                        </h1>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Nombre del amenity */}
-                        <Input
-                            label="Nombre del Producto"
-                            register={register('name')}
-                            error={errors.name?.message}
-                            placeholder="Ej: Nevera Samsung, Sofá IKEA..."
-                            required
-                        />
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Nombre del amenity */}
+                                <Input
+                                    label="Nombre del Producto"
+                                    register={register('name')}
+                                    error={errors.name?.message}
+                                    placeholder="Ej: Nevera Samsung, Sofá IKEA..."
+                                    required
+                                />
 
-                        {/* Categoría */}
-                        <Input
-                            type="select"
-                            label="Categoría"
-                            register={register('category_id')}
-                            error={errors.category_id?.message}
-                            placeholder="Selecciona una categoría"
-                            required
-                        >
-                            <option value="">Selecciona una categoría</option>
-                            {categories?.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </Input>
+                                {/* Referencia */}
+                                <Input
+                                    label="Referencia del Producto"
+                                    register={register('reference')}
+                                    error={errors.reference?.message}
+                                    placeholder="Ej: RF23M8070SG, EKENÄSET..."
+                                    required
+                                />
 
-                        {/* Marca */}
-                        <Input
-                            type="select"
-                            label="Marca"
-                            register={register('brand_id')}
-                            error={errors.brand_id?.message}
-                            placeholder="Selecciona una marca"
-                            required
-                        >
-                            <option value="">Selecciona una marca</option>
-                            {brands?.map((brand) => (
-                                <option key={brand.id} value={brand.id}>
-                                    {brand.name}
-                                </option>
-                            ))}
-                        </Input>
+                                {/* Categoría */}
+                                <Input
+                                    type="select"
+                                    label="Categoría"
+                                    register={register('category_id')}
+                                    error={errors.category_id?.message}
+                                    placeholder="Selecciona una categoría"
+                                    required
+                                >
+                                    <option value="">Selecciona una categoría</option>
+                                    {categories?.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                        {/* Referencia */}
-                        <Input
-                            label="Referencia del Producto"
-                            register={register('reference')}
-                            error={errors.reference?.message}
-                            placeholder="Ej: RF23M8070SG, EKENÄSET..."
-                            required
-                        />
+                                {/* Marca */}
+                                <Input
+                                    type="select"
+                                    label="Marca"
+                                    register={register('brand_id')}
+                                    error={errors.brand_id?.message}
+                                    placeholder="Selecciona una marca"
+                                    required
+                                >
+                                    <option value="">Selecciona una marca</option>
+                                    {brands?.map((brand) => (
+                                        <option key={brand.id} value={brand.id}>
+                                            {brand.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                        {/* Modelo */}
-                        <Input
-                            label="Modelo"
-                            register={register('model')}
-                            error={errors.model?.message}
-                            placeholder="Ej: Family Hub, EKENÄSET..."
-                            required
-                        />
+                                {/* Modelo */}
+                                <Input
+                                    label="Modelo"
+                                    register={register('model')}
+                                    error={errors.model?.message}
+                                    placeholder="Ej: Family Hub, EKENÄSET..."
+                                    required
+                                />
 
-                        {/* Descripción */}
-                        <Input
-                            type="textarea"
-                            label="Descripción"
-                            register={register('description')}
-                            error={errors.description?.message}
-                            placeholder="Describe el producto, sus características, materiales..."
-                            rows={4}
-                            required
-                        />
-
-                        {/* Precio base */}
-                        <Input
-                            type="number"
-                            label="Precio Base (€)"
-                            register={register('base_price', { valueAsNumber: true })}
-                            error={errors.base_price?.message}
-                            placeholder="0.00"
-                            min={0}
-                            step="0.01"
-                            required
-                        />
-
-                        {/* URLs de imágenes */}
-                        <FileUpload
-                            label="Imágenes del Producto"
-                            onUrlsChange={setImageUrls}
-                            accept="image/*"
-                            maxFiles={5}
-                            maxSize={2}
-                            basePath="amenities"
-                        />
-                        <p className="mt-1 text-sm text-gray-500">
-                            Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.
-                        </p>
-
-                        {/* Mensaje de estado */}
-                        {submitMessage && (
-                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
-                                ? 'bg-green-50 text-green-800 border border-green-200'
-                                : 'bg-red-50 text-red-800 border border-red-200'
-                                }`}>
-                                {submitMessage.message}
+                                {/* Precio base */}
+                                <Input
+                                    type="number"
+                                    label="Precio Base (€)"
+                                    register={register('base_price', { valueAsNumber: true })}
+                                    error={errors.base_price?.message}
+                                    placeholder="0.00"
+                                    min={0}
+                                    step="0.01"
+                                    required
+                                />
                             </div>
-                        )}
 
-                        {/* Botones */}
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => reset()}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                Limpiar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isSubmitting ? 'Creando...' : 'Crear Amenity'}
-                            </button>
+                            {/* Campos de ancho completo */}
+                            <div className="space-y-6">
+                                {/* Descripción */}
+                                <Input
+                                    type="textarea"
+                                    label="Descripción"
+                                    register={register('description')}
+                                    error={errors.description?.message}
+                                    placeholder="Describe el producto, sus características, materiales..."
+                                    rows={4}
+                                    required
+                                />
+
+                                {/* URLs de imágenes */}
+                                <FileUpload
+                                    label="Imágenes del Producto"
+                                    onUrlsChange={setImageUrls}
+                                    accept="image/*"
+                                    maxFiles={5}
+                                    maxSize={2}
+                                    basePath="amenities"
+                                />
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Separa múltiples URLs con comas. Estas imágenes mostrarán el producto.
+                                </p>
+                            </div>
+
+                            {/* Mensaje de estado */}
+                            {submitMessage && (
+                                <div className={`p-4 rounded-md ${submitMessage.type === 'success'
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                    }`}>
+                                    {submitMessage.message}
+                                </div>
+                            )}
+
+                            {/* Botones */}
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => reset()}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                >
+                                    Limpiar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Creando...' : 'Crear Amenity'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Tabla de amenities existentes */}
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                title="Productos Existentes"
+                                columns={columns}
+                                data={amenities}
+                                isLoading={isLoadingAmenities}
+                                error={amenitiesError}
+                                emptyMessage="No hay productos creados aún."
+                                // Paginación del servidor
+                                serverSidePagination={true}
+                                totalCount={amenitiesMeta?.total || 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={setCurrentPage}
+                                onPageSizeChange={setPageSize}
+                                useContainer={false}
+                            />
                         </div>
-                    </form>
-
-                </div>
-
-                {/* Tabla de amenities existentes */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <DataTable
-                        title="Productos Existentes"
-                        columns={columns}
-                        data={amenities}
-                        isLoading={isLoadingAmenities}
-                        error={amenitiesError}
-                        emptyMessage="No hay productos creados aún."
-                        // Paginación del servidor
-                        serverSidePagination={true}
-                        totalCount={amenitiesMeta?.total || 0}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                        onPageChange={setCurrentPage}
-                        onPageSizeChange={setPageSize}
-                        useContainer={false}
-                    />
+                    </div>
                 </div>
 
                 {/* Modal de edición */}

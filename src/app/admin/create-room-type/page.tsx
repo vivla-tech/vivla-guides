@@ -154,124 +154,127 @@ export default function CreateRoomTypePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                        Crear Nuevo Tipo de Habitación
-                    </h1>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="space-y-8">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                            Crear Nuevo Tipo de Habitación
+                        </h1>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Nombre del tipo de habitación */}
-                        <Input
-                            label="Nombre del Tipo"
-                            register={register('name')}
-                            error={errors.name?.message}
-                            placeholder="Ej: Dormitorio, Cocina, Baño, Salón..."
-                            required
-                        />
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                            {/* Nombre del tipo de habitación */}
+                            <Input
+                                label="Nombre del Tipo de Habitación"
+                                register={register('name')}
+                                error={errors.name?.message}
+                                placeholder="Ej: Dormitorio Principal, Cocina, Baño..."
+                                required
+                            />
 
-                        {/* Mensaje de estado */}
-                        {submitMessage && (
-                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
-                                ? 'bg-green-50 text-green-800 border border-green-200'
-                                : 'bg-red-50 text-red-800 border border-red-200'
-                                }`}>
-                                {submitMessage.message}
+                            {/* Mensaje de estado */}
+                            {submitMessage && (
+                                <div className={`p-4 rounded-md ${submitMessage.type === 'success'
+                                    ? 'bg-green-50 text-green-800 border border-green-200'
+                                    : 'bg-red-50 text-red-800 border border-red-200'
+                                    }`}>
+                                    {submitMessage.message}
+                                </div>
+                            )}
+
+                            {/* Botones */}
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => reset()}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                >
+                                    Limpiar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Creando...' : 'Crear Tipo de Habitación'}
+                                </button>
                             </div>
-                        )}
+                        </form>
+                    </div>
 
-                        {/* Botones */}
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => reset()}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                Limpiar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isSubmitting ? 'Creando...' : 'Crear Tipo de Habitación'}
-                            </button>
+                    {/* Tabla de tipos de habitación existentes */}
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                title="Tipos de Habitación Existentes"
+                                columns={columns}
+                                data={roomTypes}
+                                isLoading={isLoadingRoomTypes}
+                                error={roomTypesError}
+                                emptyMessage="No hay tipos de habitación creados aún."
+                                // Paginación del servidor
+                                serverSidePagination={true}
+                                totalCount={roomTypesMeta?.total || 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={setCurrentPage}
+                                onPageSizeChange={setPageSize}
+                                useContainer={false}
+                            />
                         </div>
-                    </form>
+                    </div>
 
+                    {/* Modal de edición */}
+                    <Modal
+                        isOpen={isEditing}
+                        onClose={() => {
+                            setIsEditing(false);
+                            setEditingRoomType(null);
+                        }}
+                        title="Editar Tipo de Habitación"
+                    >
+                        {editingRoomType && (
+                            <EditRoomTypeForm
+                                roomType={editingRoomType}
+                                onClose={() => {
+                                    setIsEditing(false);
+                                    setEditingRoomType(null);
+                                }}
+                                onSuccess={() => {
+                                    setIsEditing(false);
+                                    setEditingRoomType(null);
+                                    // Recargar datos
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
+                    </Modal>
+
+                    {/* Modal de eliminación */}
+                    <Modal
+                        isOpen={isDeleting}
+                        onClose={() => {
+                            setIsDeleting(false);
+                            setDeletingRoomType(null);
+                        }}
+                        title="Confirmar Eliminación"
+                    >
+                        {deletingRoomType && (
+                            <DeleteRoomTypeConfirmation
+                                roomType={deletingRoomType}
+                                onClose={() => {
+                                    setIsDeleting(false);
+                                    setDeletingRoomType(null);
+                                }}
+                                onSuccess={() => {
+                                    setIsDeleting(false);
+                                    setDeletingRoomType(null);
+                                    // Recargar datos
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
+                    </Modal>
                 </div>
-
-                {/* Tabla de tipos de habitación existentes */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <DataTable
-                        title="Tipos de Habitación Existentes"
-                        columns={columns}
-                        data={roomTypes}
-                        isLoading={isLoadingRoomTypes}
-                        error={roomTypesError}
-                        emptyMessage="No hay tipos de habitación creados aún."
-                        // Paginación del servidor
-                        serverSidePagination={true}
-                        totalCount={roomTypesMeta?.total || 0}
-                        currentPage={currentPage}
-                        pageSize={pageSize}
-                        onPageChange={setCurrentPage}
-                        onPageSizeChange={setPageSize}
-                        useContainer={false}
-                    />
-                </div>
-
-                {/* Modal de edición */}
-                <Modal
-                    isOpen={isEditing}
-                    onClose={() => {
-                        setIsEditing(false);
-                        setEditingRoomType(null);
-                    }}
-                    title="Editar Tipo de Habitación"
-                >
-                    {editingRoomType && (
-                        <EditRoomTypeForm
-                            roomType={editingRoomType}
-                            onClose={() => {
-                                setIsEditing(false);
-                                setEditingRoomType(null);
-                            }}
-                            onSuccess={() => {
-                                setIsEditing(false);
-                                setEditingRoomType(null);
-                                // Recargar datos
-                                window.location.reload();
-                            }}
-                        />
-                    )}
-                </Modal>
-
-                {/* Modal de eliminación */}
-                <Modal
-                    isOpen={isDeleting}
-                    onClose={() => {
-                        setIsDeleting(false);
-                        setDeletingRoomType(null);
-                    }}
-                    title="Confirmar Eliminación"
-                >
-                    {deletingRoomType && (
-                        <DeleteRoomTypeConfirmation
-                            roomType={deletingRoomType}
-                            onClose={() => {
-                                setIsDeleting(false);
-                                setDeletingRoomType(null);
-                            }}
-                            onSuccess={() => {
-                                setIsDeleting(false);
-                                setDeletingRoomType(null);
-                                // Recargar datos
-                                window.location.reload();
-                            }}
-                        />
-                    )}
-                </Modal>
             </div>
         </div>
     );

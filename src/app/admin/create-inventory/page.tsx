@@ -284,145 +284,150 @@ export default function CreateInventoryPage() {
 
                 <div className="space-y-8">
                     {/* Formulario */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h2 className="text-xl font-semibold text-gray-900 mb-6">Nuevo Item de Inventario</h2>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            {/* Casa */}
-                            <Input
-                                type="select"
-                                label="Casa"
-                                register={register('home_id')}
-                                error={errors.home_id?.message}
-                                placeholder="Selecciona una casa"
-                                required
-                            >
-                                <option value="">Selecciona una casa</option>
-                                {homes.map((home) => (
-                                    <option key={home.id} value={home.id}>
-                                        {home.name}
-                                    </option>
-                                ))}
-                            </Input>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Casa */}
+                                <Input
+                                    type="select"
+                                    label="Casa"
+                                    register={register('home_id')}
+                                    error={errors.home_id?.message}
+                                    placeholder="Selecciona una casa"
+                                    required
+                                >
+                                    <option value="">Selecciona una casa</option>
+                                    {homes.map((home) => (
+                                        <option key={home.id} value={home.id}>
+                                            {home.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                            {/* Amenity */}
-                            <Input
-                                type="select"
-                                label="Producto"
-                                register={register('amenity_id')}
-                                error={errors.amenity_id?.message}
-                                placeholder="Selecciona un producto"
-                                required
-                            >
-                                <option value="">Selecciona un producto</option>
-                                {amenities.map((amenity) => (
-                                    <option key={amenity.id} value={amenity.id}>
-                                        {amenity.name} - {amenity.reference}
-                                    </option>
-                                ))}
-                            </Input>
+                                {/* Amenity */}
+                                <Input
+                                    type="select"
+                                    label="Producto"
+                                    register={register('amenity_id')}
+                                    error={errors.amenity_id?.message}
+                                    placeholder="Selecciona un producto"
+                                    required
+                                >
+                                    <option value="">Selecciona un producto</option>
+                                    {amenities.map((amenity) => (
+                                        <option key={amenity.id} value={amenity.id}>
+                                            {amenity.name} - {amenity.reference}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                            {/* Habitación */}
-                            <Input
-                                type="select"
-                                label="Habitación (Opcional)"
-                                register={register('room_id')}
-                                error={errors.room_id?.message}
-                                placeholder="Selecciona una habitación"
-                            >
-                                <option value="">Sin asignar</option>
-                                {rooms.map((room) => (
-                                    <option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </option>
-                                ))}
-                            </Input>
+                                {/* Habitación */}
+                                <Input
+                                    type="select"
+                                    label="Habitación (Opcional)"
+                                    register={register('room_id')}
+                                    error={errors.room_id?.message}
+                                    placeholder="Selecciona una habitación"
+                                >
+                                    <option value="">Sin asignar</option>
+                                    {rooms.map((room) => (
+                                        <option key={room.id} value={room.id}>
+                                            {room.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                            {/* Cantidad */}
-                            <Input
-                                type="number"
-                                label="Cantidad"
-                                register={register('quantity', { valueAsNumber: true })}
-                                error={errors.quantity?.message}
-                                placeholder="1"
-                                min={1}
-                                required
-                            />
+                                {/* Cantidad */}
+                                <Input
+                                    type="number"
+                                    label="Cantidad"
+                                    register={register('quantity', { valueAsNumber: true })}
+                                    error={errors.quantity?.message}
+                                    placeholder="1"
+                                    min={1}
+                                    required
+                                />
 
-                            {/* Detalles de ubicación */}
-                            <Input
-                                type="text"
-                                label="Detalles de Ubicación"
-                                register={register('location_details')}
-                                error={errors.location_details?.message}
-                                placeholder="Ej: Estante superior, cajón izquierdo..."
-                                required
-                            />
+                                {/* Umbral mínimo */}
+                                <Input
+                                    type="number"
+                                    label="Umbral Mínimo de Stock"
+                                    register={register('minimum_threshold', { valueAsNumber: true })}
+                                    error={errors.minimum_threshold?.message}
+                                    placeholder="0"
+                                    min={0}
+                                />
 
-                            {/* Umbral mínimo */}
-                            <Input
-                                type="number"
-                                label="Umbral Mínimo de Stock"
-                                register={register('minimum_threshold', { valueAsNumber: true })}
-                                error={errors.minimum_threshold?.message}
-                                placeholder="0"
-                                min={0}
-                            />
+                                {/* Proveedor */}
+                                <Input
+                                    type="select"
+                                    label="Proveedor"
+                                    register={register('supplier_id')}
+                                    error={errors.supplier_id?.message}
+                                    placeholder="Selecciona un proveedor"
+                                    required
+                                >
+                                    <option value="">Selecciona un proveedor</option>
+                                    {suppliers.map((supplier) => (
+                                        <option key={supplier.id} value={supplier.id}>
+                                            {supplier.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                            {/* Proveedor */}
-                            <Input
-                                type="select"
-                                label="Proveedor"
-                                register={register('supplier_id')}
-                                error={errors.supplier_id?.message}
-                                placeholder="Selecciona un proveedor"
-                                required
-                            >
-                                <option value="">Selecciona un proveedor</option>
-                                {suppliers.map((supplier) => (
-                                    <option key={supplier.id} value={supplier.id}>
-                                        {supplier.name}
-                                    </option>
-                                ))}
-                            </Input>
+                                {/* Precio de compra */}
+                                <Input
+                                    type="number"
+                                    label="Precio de Compra (€)"
+                                    register={register('purchase_price', { valueAsNumber: true })}
+                                    error={errors.purchase_price?.message}
+                                    placeholder="0.00"
+                                    min={0}
+                                    step="0.01"
+                                />
+                            </div>
 
-                            {/* Enlace de compra */}
-                            <Input
-                                type="url"
-                                label="Enlace de Compra"
-                                register={register('purchase_link')}
-                                error={errors.purchase_link?.message}
-                                placeholder="https://www.proveedor.com/producto"
-                            />
+                            {/* Campos de ancho completo */}
+                            <div className="space-y-6">
+                                {/* Detalles de ubicación */}
+                                <Input
+                                    type="text"
+                                    label="Detalles de Ubicación"
+                                    register={register('location_details')}
+                                    error={errors.location_details?.message}
+                                    placeholder="Ej: Estante superior, cajón izquierdo..."
+                                    required
+                                />
 
-                            {/* Precio de compra */}
-                            <Input
-                                type="number"
-                                label="Precio de Compra (€)"
-                                register={register('purchase_price', { valueAsNumber: true })}
-                                error={errors.purchase_price?.message}
-                                placeholder="0.00"
-                                min={0}
-                                step="0.01"
-                            />
+                                {/* Enlace de compra */}
+                                <Input
+                                    type="url"
+                                    label="Enlace de Compra"
+                                    register={register('purchase_link')}
+                                    error={errors.purchase_link?.message}
+                                    placeholder="https://www.proveedor.com/producto"
+                                />
 
-                            {/* Fecha de último reabastecimiento */}
-                            <Input
-                                type="date"
-                                label="Fecha del Último Reabastecimiento"
-                                register={register('last_restocked_date')}
-                                error={errors.last_restocked_date?.message}
-                            />
+                                {/* Fecha de último reabastecimiento */}
+                                <Input
+                                    type="date"
+                                    label="Fecha del Último Reabastecimiento"
+                                    register={register('last_restocked_date')}
+                                    error={errors.last_restocked_date?.message}
+                                />
 
-                            {/* Notas */}
-                            <Input
-                                type="textarea"
-                                label="Notas Adicionales"
-                                register={register('notes')}
-                                error={errors.notes?.message}
-                                placeholder="Notas adicionales sobre el inventario..."
-                                rows={3}
-                            />
+                                {/* Notas */}
+                                <Input
+                                    type="textarea"
+                                    label="Notas Adicionales"
+                                    register={register('notes')}
+                                    error={errors.notes?.message}
+                                    placeholder="Notas adicionales sobre el inventario..."
+                                    rows={3}
+                                />
+                            </div>
 
                             {/* Mensaje de estado */}
                             {submitMessage && (
@@ -435,7 +440,7 @@ export default function CreateInventoryPage() {
                             )}
 
                             {/* Botones */}
-                            <div className="flex justify-end space-x-4">
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
                                 <button
                                     type="button"
                                     onClick={() => reset()}
@@ -455,7 +460,7 @@ export default function CreateInventoryPage() {
                     </div>
 
                     {/* Tabla de inventario */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-xl font-semibold text-gray-900">Inventario existente {inventoryMeta ? `(${inventoryMeta.total})` : ''}</h2>
                             <div className="w-full sm:w-64">
@@ -473,27 +478,29 @@ export default function CreateInventoryPage() {
                             </div>
                         </div>
 
-                        {isLoadingInventory ? (
-                            <div className="text-center py-8">
-                                <div className="text-gray-500">Cargando inventario...</div>
-                            </div>
-                        ) : inventoryError ? (
-                            <div className="text-center py-8">
-                                <div className="text-red-500">Error al cargar el inventario: {inventoryError}</div>
-                            </div>
-                        ) : (
-                            <DataTable
-                                data={inventory || []}
-                                columns={columns}
-                                totalCount={inventoryMeta ? inventoryMeta.total : 0}
-                                currentPage={currentPage}
-                                pageSize={pageSize}
-                                onPageChange={(p) => setCurrentPage(Math.max(1, p))}
-                                onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
-                                serverSidePagination={true}
-                                useContainer={false}
-                            />
-                        )}
+                        <div className="overflow-x-auto">
+                            {isLoadingInventory ? (
+                                <div className="text-center py-8">
+                                    <div className="text-gray-500">Cargando inventario...</div>
+                                </div>
+                            ) : inventoryError ? (
+                                <div className="text-center py-8">
+                                    <div className="text-red-500">Error al cargar el inventario: {inventoryError}</div>
+                                </div>
+                            ) : (
+                                <DataTable
+                                    data={inventory || []}
+                                    columns={columns}
+                                    totalCount={inventoryMeta ? inventoryMeta.total : 0}
+                                    currentPage={currentPage}
+                                    pageSize={pageSize}
+                                    onPageChange={(p) => setCurrentPage(Math.max(1, p))}
+                                    onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+                                    serverSidePagination={true}
+                                    useContainer={false}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
 

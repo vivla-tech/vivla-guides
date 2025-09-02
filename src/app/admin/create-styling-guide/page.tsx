@@ -180,31 +180,33 @@ export default function CreateStylingGuidePage() {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="space-y-8">
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Crear Nueva Guía de Estilo</h1>
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            <Input
-                                type="select"
-                                label="Habitación"
-                                register={register('room_id')}
-                                error={errors.room_id?.message}
-                                placeholder="Selecciona una habitación"
-                                required
-                            >
-                                {rooms.map((room) => (
-                                    <option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </option>
-                                ))}
-                            </Input>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Input
+                                    type="select"
+                                    label="Habitación"
+                                    register={register('room_id')}
+                                    error={errors.room_id?.message}
+                                    placeholder="Selecciona una habitación"
+                                    required
+                                >
+                                    {rooms.map((room) => (
+                                        <option key={room.id} value={room.id}>
+                                            {room.name}
+                                        </option>
+                                    ))}
+                                </Input>
 
-                            <Input
-                                label="Título de la Guía"
-                                register={register('title')}
-                                error={errors.title?.message}
-                                placeholder="Ej: Estilo Nórdico, Decoración Minimalista, Estilo Industrial..."
-                                required
-                            />
+                                <Input
+                                    label="Título de la Guía"
+                                    register={register('title')}
+                                    error={errors.title?.message}
+                                    placeholder="Ej: Estilo Nórdico, Decoración Minimalista, Estilo Industrial..."
+                                    required
+                                />
+                            </div>
 
                             <FileUpload
                                 label="Imágenes de la Guía de Estilo"
@@ -222,7 +224,7 @@ export default function CreateStylingGuidePage() {
                                 </div>
                             )}
 
-                            <div className="flex justify-end space-x-4">
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
                                 <button
                                     type="button"
                                     onClick={() => { reset(); setImageUrls([]); }}
@@ -241,21 +243,23 @@ export default function CreateStylingGuidePage() {
                         </form>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h2 className="text-xl font-semibold text-gray-900 mb-6">Guías de estilo existentes {meta ? `(${meta.total})` : ''}</h2>
-                        <DataTable
-                            data={guides}
-                            columns={columns}
-                            totalCount={meta ? meta.total : 0}
-                            currentPage={currentPage}
-                            pageSize={pageSize}
-                            onPageChange={(p) => setCurrentPage(Math.max(1, p))}
-                            onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
-                            serverSidePagination={true}
-                            isLoading={isLoading}
-                            error={error}
-                            useContainer={false}
-                        />
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                data={guides}
+                                columns={columns}
+                                totalCount={meta ? meta.total : 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={(p) => setCurrentPage(Math.max(1, p))}
+                                onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+                                serverSidePagination={true}
+                                isLoading={isLoading}
+                                error={error}
+                                useContainer={false}
+                            />
+                        </div>
                     </div>
 
                     {isEditing && editingGuide && (

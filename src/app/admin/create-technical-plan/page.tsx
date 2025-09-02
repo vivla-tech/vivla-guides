@@ -143,45 +143,51 @@ export default function CreateTechnicalPlanPage() {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="space-y-8">
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Crear Nuevo Plano Técnico</h1>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                            <Input type="select" label="Casa" register={register('home_id')} error={errors.home_id?.message} placeholder="Selecciona una casa" required>
-                                {homes.map((home) => (<option key={home.id} value={home.id}>{home.name}</option>))}
-                            </Input>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Input type="select" label="Casa" register={register('home_id')} error={errors.home_id?.message} placeholder="Selecciona una casa" required>
+                                    {homes.map((home) => (<option key={home.id} value={home.id}>{home.name}</option>))}
+                                </Input>
 
-                            <Input label="Título del Plano" register={register('title')} error={errors.title?.message} placeholder="Ej: Plano de Instalación Eléctrica..." required />
+                                <Input label="Título del Plano" register={register('title')} error={errors.title?.message} placeholder="Ej: Plano de Instalación Eléctrica..." required />
+                            </div>
 
-                            <Input type="textarea" label="Descripción del Plano" register={register('description')} error={errors.description?.message} placeholder="Descripción detallada..." rows={3} required />
+                            <div className="space-y-6">
+                                <Input type="textarea" label="Descripción del Plano" register={register('description')} error={errors.description?.message} placeholder="Descripción detallada..." rows={3} required />
 
-                            <FileUpload label="Archivo del Plano Técnico" onUrlsChange={setPlanUrls} accept=".pdf,.dwg,.jpg,.jpeg,.png" maxFiles={1} maxSize={10} basePath="technical-plans" />
-                            <p className="mt-1 text-sm text-gray-500">Sube el archivo del plano técnico (PDF, DWG, imagen). Máximo 10MB.</p>
+                                <FileUpload label="Archivo del Plano Técnico" onUrlsChange={setPlanUrls} accept=".pdf,.dwg,.jpg,.jpeg,.png" maxFiles={1} maxSize={10} basePath="technical-plans" />
+                                <p className="mt-1 text-sm text-gray-500">Sube el archivo del plano técnico (PDF, DWG, imagen). Máximo 10MB.</p>
+                            </div>
 
                             {submitMessage && (<div className={`p-4 rounded-md ${submitMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>{submitMessage.message}</div>)}
 
-                            <div className="flex justify-end space-x-4">
-                                <button type="button" onClick={() => reset()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Limpiar</button>
-                                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50">{isSubmitting ? 'Creando...' : 'Crear Plano Técnico'}</button>
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                                <button type="button" onClick={() => reset()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Limpiar</button>
+                                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? 'Creando...' : 'Crear Plano Técnico'}</button>
                             </div>
                         </form>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
                         <h2 className="text-xl font-semibold text-gray-900 mb-6">Planos técnicos existentes {meta ? `(${meta.total})` : ''}</h2>
-                        <DataTable
-                            data={plans}
-                            columns={columns}
-                            totalCount={meta ? meta.total : 0}
-                            currentPage={currentPage}
-                            pageSize={pageSize}
-                            onPageChange={(p) => setCurrentPage(Math.max(1, p))}
-                            onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
-                            serverSidePagination={true}
-                            isLoading={isLoading}
-                            error={error}
-                            useContainer={false}
-                        />
+                        <div className="overflow-x-auto">
+                            <DataTable
+                                data={plans}
+                                columns={columns}
+                                totalCount={meta ? meta.total : 0}
+                                currentPage={currentPage}
+                                pageSize={pageSize}
+                                onPageChange={(p) => setCurrentPage(Math.max(1, p))}
+                                onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+                                serverSidePagination={true}
+                                isLoading={isLoading}
+                                error={error}
+                                useContainer={false}
+                            />
+                        </div>
                     </div>
 
                     {isEditing && editingPlan && (
