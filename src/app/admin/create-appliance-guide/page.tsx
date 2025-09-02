@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ApplianceGuide, Brand, CreateApplianceGuide } from '@/lib/types';
+import { ApplianceGuide, Brand, CreateApplianceGuide, Home } from '@/lib/types';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { useApiData } from '@/hooks/useApiData';
@@ -14,6 +14,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { EditApplianceGuideForm } from '@/components/ui/EditApplianceGuideForm';
 import { DeleteApplianceGuideConfirmation } from '@/components/ui/DeleteApplianceGuideConfirmation';
+
 
 // Esquema de validación para crear una guía de electrodomésticos
 const createApplianceGuideSchema = z.object({
@@ -36,6 +37,7 @@ export default function CreateApplianceGuidePage() {
     const [videoUrls, setVideoUrls] = useState<string[]>([]);
 
     const { data: brands } = useApiData<Brand>('brands');
+    const { data: homes } = useApiData<Home>('homes', { page: 1, pageSize: 100 });
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -52,6 +54,7 @@ export default function CreateApplianceGuidePage() {
     const [isEditing, setIsEditing] = useState(false);
     const [deletingGuide, setDeletingGuide] = useState<ApplianceGuide | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedHomeByGuide, setSelectedHomeByGuide] = useState<Record<string, string>>({});
 
     const {
         register,
@@ -139,6 +142,57 @@ export default function CreateApplianceGuidePage() {
                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                             <span className="text-gray-400 text-xs">Sin imagen</span>
                         </div>
+                    </div>
+                );
+            },
+        },
+        {
+            id: 'link_home',
+            header: 'Vincular a casa',
+            size: 260,
+            cell: ({ row }) => {
+                const guide = row.original;
+                const sel = selectedHomeByGuide[guide.id] || '';
+                return (
+                    <div className="flex items-center gap-2">
+                        <select
+                            className="border border-gray-300 rounded-md px-2 py-1 text-sm text-gray-700"
+                            value={sel}
+                            onChange={(e) => setSelectedHomeByGuide((prev) => ({ ...prev, [guide.id]: e.target.value }))}
+                        >
+                            <option value="">Selecciona casa</option>
+                            {homes.map((h) => (
+                                <option key={h.id} value={h.id}>{h.name}</option>
+                            ))}
+                        </select>
+                        <button
+                            className="px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            disabled={!sel}
+                            onClick={async () => {
+                                try {
+                                    await apiClient.linkApplianceGuide(sel, guide.id);
+                                    alert('Guía vinculada a la casa');
+                                } catch (e) {
+                                    alert('Error al vincular');
+                                }
+                            }}
+                        >
+                            Enlazar
+                        </button>
+                        <button
+                            className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300 rounded hover:bg-gray-200"
+                            onClick={async () => {
+                                try {
+                                    if (!sel) return alert('Selecciona casa para desvincular');
+                                    await apiClient.unlinkApplianceGuide(sel, guide.id);
+                                    alert('Guía desvinculada de la casa');
+                                } catch (e) {
+                                    alert('Error al desvincular');
+                                }
+                            }}
+                        >
+                            Desvincular
+                        </button>
                     </div>
                 );
             },
