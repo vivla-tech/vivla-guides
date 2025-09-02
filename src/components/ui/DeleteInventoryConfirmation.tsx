@@ -21,16 +21,11 @@ export function DeleteInventoryConfirmation({ inventory, onClose, onSuccess }: D
         setError(null);
 
         try {
-            const response = await apiClient.deleteInventory(inventory.id);
-
-            if (response.success) {
-                // Cerrar modal y recargar datos después de un breve delay
-                setTimeout(() => {
-                    onSuccess();
-                }, 1000);
-            } else {
-                setError('Error al eliminar el inventario');
-            }
+            // Si la petición se resuelve (incluido 204), la consideramos exitosa
+            await apiClient.deleteInventory(inventory.id);
+            setTimeout(() => {
+                onSuccess();
+            }, 1200);
         } catch (err) {
             console.error('Error al eliminar inventario:', err);
             setError(err instanceof Error ? err.message : 'Error de conexión');
@@ -38,6 +33,11 @@ export function DeleteInventoryConfirmation({ inventory, onClose, onSuccess }: D
             setIsDeleting(false);
         }
     };
+
+    const priceNumber = typeof inventory.purchase_price === 'number'
+        ? inventory.purchase_price
+        : parseFloat(String(inventory.purchase_price ?? ''));
+    const priceText = Number.isFinite(priceNumber) ? `€${priceNumber.toFixed(2)}` : '-';
 
     return (
         <Modal
@@ -78,11 +78,9 @@ export function DeleteInventoryConfirmation({ inventory, onClose, onSuccess }: D
                             <div>
                                 <span className="font-medium">Ubicación:</span> {inventory.location_details}
                             </div>
-                            {inventory.purchase_price && (
-                                <div>
-                                    <span className="font-medium">Precio:</span> €{inventory.purchase_price.toFixed(2)}
-                                </div>
-                            )}
+                            <div>
+                                <span className="font-medium">Precio:</span> {priceText}
+                            </div>
                         </div>
                     </div>
 

@@ -39,6 +39,9 @@ export default function CreateInventoryPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
+    // Filtro por casa para el listado
+    const [selectedHomeId, setSelectedHomeId] = useState<string>('');
+
     // Estados para edición
     const [isEditing, setIsEditing] = useState(false);
     const [editingInventory, setEditingInventory] = useState<HomeInventoryWithRelations | null>(null);
@@ -67,7 +70,7 @@ export default function CreateInventoryPage() {
             try {
                 setIsLoadingInventory(true);
                 setInventoryError(null);
-                const res = await apiClient.listInventory({ page: currentPage, pageSize });
+                const res = await apiClient.listInventory({ page: currentPage, pageSize, home_id: selectedHomeId || undefined });
                 if (cancelled) return;
                 if (res.success) {
                     setInventory(res.data);
@@ -85,7 +88,7 @@ export default function CreateInventoryPage() {
         return () => {
             cancelled = true;
         };
-    }, [apiClient, currentPage, pageSize]);
+    }, [apiClient, currentPage, pageSize, selectedHomeId]);
 
     // Funciones para manejar edición y eliminación
     const handleEditInventory = (inventoryItem: HomeInventoryWithRelations) => {
@@ -453,9 +456,22 @@ export default function CreateInventoryPage() {
 
                     {/* Tabla de inventario */}
                     <div className="bg-white rounded-lg shadow-md p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                            Inventario existente {inventoryMeta ? `(${inventoryMeta.total})` : ''}
-                        </h2>
+                        <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 className="text-xl font-semibold text-gray-900">Inventario existente {inventoryMeta ? `(${inventoryMeta.total})` : ''}</h2>
+                            <div className="w-full sm:w-64">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Filtrar por casa</label>
+                                <select
+                                    className="text-gray-700 w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                                    value={selectedHomeId}
+                                    onChange={(e) => { setSelectedHomeId(e.target.value); setCurrentPage(1); }}
+                                >
+                                    <option value="">Todas las casas</option>
+                                    {homes.map((home) => (
+                                        <option key={home.id} value={home.id}>{home.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
 
                         {isLoadingInventory ? (
                             <div className="text-center py-8">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -48,6 +48,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm<EditInventoryFormData>({
         resolver: zodResolver(editInventorySchema),
         defaultValues: {
@@ -64,6 +65,24 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
             notes: inventory.notes || '',
         },
     });
+
+    // Asegurar que los selects muestren el valor cuando las opciones carguen
+    useEffect(() => {
+        reset({
+            home_id: inventory.home_id,
+            amenity_id: inventory.amenity_id,
+            room_id: inventory.room_id || '',
+            quantity: inventory.quantity,
+            location_details: inventory.location_details,
+            minimum_threshold: inventory.minimum_threshold,
+            supplier_id: inventory.supplier_id,
+            purchase_link: inventory.purchase_link || '',
+            purchase_price: inventory.purchase_price,
+            last_restocked_date: inventory.last_restocked_date ? new Date(inventory.last_restocked_date).toISOString().split('T')[0] : '',
+            notes: inventory.notes || '',
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inventory, reset, (homes ? homes.length : 0), (amenities ? amenities.length : 0), (rooms ? rooms.length : 0), (suppliers ? suppliers.length : 0)]);
 
     const onSubmit = async (data: EditInventoryFormData) => {
         setIsSubmitting(true);
@@ -119,7 +138,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
             onClose={onClose}
             title="Editar Inventario"
         >
-            <div className="p-6 max-h-[80vh] overflow-y-auto">
+            <div className="p-6 max-h-[70vh] overflow-y-auto overscroll-contain">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {/* Casa */}
                     <Input
@@ -129,8 +148,15 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.home_id?.message}
                         placeholder="Selecciona una casa"
                         required
+                        defaultValue={inventory.home_id}
                     >
                         <option value="">Selecciona una casa</option>
+                        {/* Fallback si la casa no está en la lista aún */}
+                        {(!homes || !homes.find(h => h.id === inventory.home_id)) && (
+                            <option value={inventory.home_id}>
+                                {inventory.home?.name || 'Casa actual'}
+                            </option>
+                        )}
                         {homes?.map((home) => (
                             <option key={home.id} value={home.id}>
                                 {home.name}
@@ -146,8 +172,15 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.amenity_id?.message}
                         placeholder="Selecciona un producto"
                         required
+                        defaultValue={inventory.amenity_id}
                     >
                         <option value="">Selecciona un producto</option>
+                        {/* Fallback si el producto no está en la lista aún */}
+                        {(!amenities || !amenities.find(a => a.id === inventory.amenity_id)) && (
+                            <option value={inventory.amenity_id}>
+                                {(inventory.amenity?.name || 'Producto actual') + (inventory.amenity?.reference ? ` - ${inventory.amenity.reference}` : '')}
+                            </option>
+                        )}
                         {amenities?.map((amenity) => (
                             <option key={amenity.id} value={amenity.id}>
                                 {amenity.name} - {amenity.reference}
@@ -162,8 +195,15 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         register={register('room_id')}
                         error={errors.room_id?.message}
                         placeholder="Selecciona una habitación"
+                        defaultValue={inventory.room_id || ''}
                     >
                         <option value="">Sin asignar</option>
+                        {/* Fallback si la habitación no está en la lista aún */}
+                        {inventory.room_id && (!rooms || !rooms.find(r => r.id === inventory.room_id)) && (
+                            <option value={inventory.room_id}>
+                                {inventory.room?.name || 'Habitación actual'}
+                            </option>
+                        )}
                         {rooms?.map((room) => (
                             <option key={room.id} value={room.id}>
                                 {room.name}
@@ -180,6 +220,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         placeholder="1"
                         min={1}
                         required
+                        defaultValue={inventory.quantity}
                     />
 
                     {/* Detalles de ubicación */}
@@ -190,6 +231,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.location_details?.message}
                         placeholder="Ej: Estante superior, cajón izquierdo..."
                         required
+                        defaultValue={inventory.location_details}
                     />
 
                     {/* Umbral mínimo */}
@@ -200,6 +242,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.minimum_threshold?.message}
                         placeholder="0"
                         min={0}
+                        defaultValue={inventory.minimum_threshold}
                     />
 
                     {/* Proveedor */}
@@ -210,8 +253,15 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.supplier_id?.message}
                         placeholder="Selecciona un proveedor"
                         required
+                        defaultValue={inventory.supplier_id}
                     >
                         <option value="">Selecciona un proveedor</option>
+                        {/* Fallback si el proveedor no está en la lista aún */}
+                        {(!suppliers || !suppliers.find(s => s.id === inventory.supplier_id)) && (
+                            <option value={inventory.supplier_id}>
+                                {inventory.supplier?.name || 'Proveedor actual'}
+                            </option>
+                        )}
                         {suppliers?.map((supplier) => (
                             <option key={supplier.id} value={supplier.id}>
                                 {supplier.name}
@@ -226,6 +276,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         register={register('purchase_link')}
                         error={errors.purchase_link?.message}
                         placeholder="https://www.proveedor.com/producto"
+                        defaultValue={inventory.purchase_link || ''}
                     />
 
                     {/* Precio de compra */}
@@ -237,6 +288,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         placeholder="0.00"
                         min={0}
                         step="0.01"
+                        defaultValue={inventory.purchase_price}
                     />
 
                     {/* Fecha de último reabastecimiento */}
@@ -245,6 +297,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         label="Fecha del Último Reabastecimiento"
                         register={register('last_restocked_date')}
                         error={errors.last_restocked_date?.message}
+                        defaultValue={inventory.last_restocked_date ? new Date(inventory.last_restocked_date).toISOString().split('T')[0] : ''}
                     />
 
                     {/* Notas */}
@@ -255,6 +308,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         error={errors.notes?.message}
                         placeholder="Notas adicionales sobre el inventario..."
                         rows={3}
+                        defaultValue={inventory.notes || ''}
                     />
 
                     {/* Mensaje de estado */}
