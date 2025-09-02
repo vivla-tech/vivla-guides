@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { Home, Room, HomeInventoryWithRelations, StylingGuide, ApplianceGuide, TechnicalPlan } from '@/lib/types';
+import { Home, Room, HomeInventoryWithRelations, StylingGuide, ApplianceGuide, TechnicalPlan, Category } from '@/lib/types';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ interface HomeDetails {
     stylingGuides: StylingGuide[];
     applianceGuides: ApplianceGuide[];
     technicalPlans: TechnicalPlan[];
+    categories: Category[];
     stats: {
         rooms_count: number;
         inventory_count: number;
@@ -30,6 +31,7 @@ export default function HomeDetailsPage() {
     const [homeDetails, setHomeDetails] = useState<HomeDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [categoryFilter, setCategoryFilter] = useState<string>('');
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -47,20 +49,25 @@ export default function HomeDetailsPage() {
                     inventoryResponse,
                     stylingGuidesResponse,
                     applianceGuidesResponse,
-                    technicalPlansResponse
+                    technicalPlansResponse,
+                    categoriesResponse
                 ] = await Promise.all([
                     apiClient.getHomeById(homeId),
                     apiClient.listRoomsByHome(homeId),
-                    apiClient.listInventory({ home_id: homeId }),
+                    apiClient.listInventory({ home_id: homeId, page: 1, pageSize: 50 }),
                     apiClient.listStylingGuidesByHome(homeId),
                     apiClient.listApplianceGuidesByHome(homeId),
-                    apiClient.listTechnicalPlans({ home_id: homeId })
+                    apiClient.listTechnicalPlans({ home_id: homeId }),
+                    apiClient.listCategories()
                 ]);
+
+                // Filtrar inventario por casa por si el backend devuelve items globales
+                const inventoryByHome = (inventoryResponse.data || []).filter((item) => item.home_id === homeId);
 
                 // Calcular estadísticas
                 const stats = {
                     rooms_count: roomsResponse.data.length,
-                    inventory_count: inventoryResponse.data.length,
+                    inventory_count: inventoryByHome.length,
                     styling_guides_count: stylingGuidesResponse.data.length,
                     appliance_guides_count: applianceGuidesResponse.data.length,
                     technical_plans_count: technicalPlansResponse.data.length,
@@ -78,10 +85,11 @@ export default function HomeDetailsPage() {
                 setHomeDetails({
                     home: homeResponse.data,
                     rooms: roomsResponse.data,
-                    inventory: inventoryResponse.data,
+                    inventory: inventoryByHome,
                     stylingGuides: stylingGuidesResponse.data,
                     applianceGuides: applianceGuidesResponse.data,
                     technicalPlans: technicalPlansResponse.data,
+                    categories: categoriesResponse.data,
                     stats
                 });
 
@@ -125,7 +133,11 @@ export default function HomeDetailsPage() {
         );
     }
 
-    const { home, rooms, inventory, stylingGuides, applianceGuides, technicalPlans, stats } = homeDetails;
+    const { home, rooms, inventory, stylingGuides, applianceGuides, technicalPlans, categories, stats } = homeDetails;
+
+    const filteredInventory = categoryFilter
+        ? inventory.filter(i => (i.amenity?.category?.id || i.amenity?.category_id) === categoryFilter)
+        : inventory;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
@@ -174,12 +186,6 @@ export default function HomeDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">{stats.rooms_count}</div>
-                            <div className="text-sm text-gray-600">Habitaciones</div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="text-center">
                             <div className="text-2xl font-bold text-gray-900">{stats.inventory_count}</div>
                             <div className="text-sm text-gray-600">Items</div>
                         </div>
@@ -204,54 +210,89 @@ export default function HomeDetailsPage() {
                     </div>
                 </div>
 
-                {/* Habitaciones */}
+                {/* Inventario (al inicio) */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">🏠 Habitaciones</h2>
-                    {rooms.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {rooms.map((room) => (
-                                <div key={room.id} className="border border-gray-200 rounded-lg p-4">
-                                    <h3 className="font-semibold text-gray-900">{room.name}</h3>
-                                    <p className="text-sm text-gray-600">Tipo ID: {room.room_type_id}</p>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        {inventory.filter(item => item.room_id === room.id).length} items
-                                    </p>
-                                </div>
-                            ))}
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">📋 Inventario</h2>
+                        <div className="flex items-center space-x-3">
+                            <label className="text-sm text-gray-700">Categoría</label>
+                            <select
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                className="text-gray-700 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Todas</option>
+                                {categories.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
                         </div>
-                    ) : (
-                        <p className="text-gray-500">No hay habitaciones registradas para esta casa.</p>
-                    )}
-                </div>
+                    </div>
 
-                {/* Inventario Reciente */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">📋 Inventario Reciente</h2>
-                    {inventory.length > 0 ? (
-                        <div className="space-y-3">
-                            {inventory.slice(0, 5).map((item) => (
-                                <div key={item.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                    <div>
-                                        <h4 className="font-medium text-gray-900">{item.amenity?.name || `Producto ID: ${item.amenity_id}`}</h4>
-                                        <p className="text-sm text-gray-600">
-                                            {rooms.find(r => r.id === item.room_id)?.name || 'Habitación no especificada'}
-                                        </p>
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                        {item.quantity || 0} {(item.quantity || 0) > 1 ? 'unidades' : 'unidad'}
-                                    </div>
-                                </div>
-                            ))}
-                            {inventory.length > 5 && (
-                                <div className="text-center pt-2">
+                    {filteredInventory.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Espacio</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio compra</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                                        <th className="px-4 py-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredInventory.map((item) => {
+                                        const roomName = rooms.find(r => r.id === item.room_id)?.name || 'Sin asignar';
+                                        const categoryName = item.amenity?.category?.name
+                                            ?? (item.amenity?.category_id
+                                                ? (categories.find(c => c.id === item.amenity!.category_id)?.name || item.amenity!.category_id)
+                                                : '-');
+                                        const brandName = item.amenity?.brand?.name || '-';
+                                        const qty = item.quantity ?? 0;
+                                        const price = typeof item.purchase_price === 'number' ? item.purchase_price : null;
+                                        return (
+                                            <tr key={item.id}>
+                                                <td className="px-4 py-2 whitespace-nowrap">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="w-10 h-10 bg-gray-200 rounded overflow-hidden">
+                                                            {item.amenity?.images && item.amenity.images[0] ? (
+                                                                <img src={item.amenity.images[0]} alt={item.amenity.name} className="w-full h-full object-cover" />
+                                                            ) : null}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-sm font-medium text-gray-900">{item.amenity?.name || `ID: ${item.amenity_id}`}</div>
+                                                            <div className="text-xs text-gray-500">{item.amenity?.reference} {item.amenity?.model && `· ${item.amenity.model}`}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{categoryName}</td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{brandName}</td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{roomName}</td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{qty}</td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{price !== null ? `€${price.toFixed(2)}` : '-'}</td>
+                                                <td className="px-4 py-2 text-sm text-gray-700">{item.location_details || '-'}</td>
+                                                <td className="px-4 py-2 text-right text-sm">
+                                                    <Link href={`/dashboard/${homeId}/inventory`} className="text-blue-600 hover:text-blue-800">Ver</Link>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                            {filteredInventory.length > 10 && (
+                                <div className="text-center pt-3">
                                     <Link href={`/dashboard/${homeId}/inventory`} className="text-blue-600 hover:text-blue-800 text-sm">
-                                        Ver todos los {inventory.length} items →
+                                        Ver todos los {filteredInventory.length} items →
                                     </Link>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <p className="text-gray-500">No hay inventario registrado para esta casa.</p>
+                        <p className="text-gray-500">No hay inventario {categoryFilter ? 'para esta categoría' : ''}.</p>
                     )}
                 </div>
 

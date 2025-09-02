@@ -41,6 +41,9 @@ export interface Amenity {
   description: string;            // Descripción (TEXT)
   base_price: number;            // Precio base
   images: string[];              // Array de URLs de imágenes (JSONB)
+  // Relaciones (opcionales) cuando vienen pobladas desde el backend
+  category?: Category;
+  brand?: Brand;
   created_at: Date;
   updated_at: Date;
 }

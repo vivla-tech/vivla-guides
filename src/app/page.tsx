@@ -229,7 +229,7 @@ export default function Home() {
                 <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
                   <div className="text-center">
                     <div className="font-medium">{home.counts?.rooms ?? 0}</div>
-                    <div>Habit.</div>
+                    <div>Espacios</div>
                   </div>
                   <div className="text-center">
                     <div className="font-medium">{home.counts?.inventory ?? 0}</div>
