@@ -143,12 +143,12 @@ export default function CreateInventoryPage() {
             ),
         },
         {
-            accessorKey: 'home.name',
+            accessorKey: 'home_id',
             header: 'Casa',
             size: 150,
             cell: ({ row }) => (
                 <div className="text-gray-700">
-                    {row.original.home?.name}
+                    {homes.find(h => h.id === row.original.home_id)?.name || '—'}
                 </div>
             ),
         },

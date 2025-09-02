@@ -116,7 +116,7 @@ export default function CreateStylingGuidePage() {
             size: 100,
             cell: ({ row }) => {
                 const g = row.original as StylingGuide;
-                const url = (g.image_urls && g.image_urls[0]) || (g as any).reference_photo_url || '';
+                const url = (g.image_urls && g.image_urls[0]) || g.reference_photo_url || '';
                 return url ? (
                     <div className="flex items-center justify-center">
                         <img src={url} alt="ref" className="w-16 h-16 object-cover rounded-lg shadow-sm" />

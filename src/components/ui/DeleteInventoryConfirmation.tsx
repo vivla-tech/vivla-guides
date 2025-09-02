@@ -70,7 +70,7 @@ export function DeleteInventoryConfirmation({ inventory, onClose, onSuccess }: D
                                 <span className="font-medium">Producto:</span> {inventory.amenity?.name}
                             </div>
                             <div>
-                                <span className="font-medium">Casa:</span> {inventory.home?.name}
+                                <span className="font-medium">Casa (ID):</span> {inventory.home_id}
                             </div>
                             <div>
                                 <span className="font-medium">Cantidad:</span> {inventory.quantity}

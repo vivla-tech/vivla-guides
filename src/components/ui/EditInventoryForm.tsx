@@ -154,7 +154,7 @@ export function EditInventoryForm({ inventory, onClose, onSuccess }: EditInvento
                         {/* Fallback si la casa no está en la lista aún */}
                         {(!homes || !homes.find(h => h.id === inventory.home_id)) && (
                             <option value={inventory.home_id}>
-                                {inventory.home?.name || 'Casa actual'}
+                                {homes?.find(h => h.id === inventory.home_id)?.name || 'Casa actual'}
                             </option>
                         )}
                         {homes?.map((home) => (

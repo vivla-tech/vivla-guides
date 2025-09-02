@@ -385,7 +385,7 @@ export default function HomeDetailsPage() {
                         {stylingGuides.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {stylingGuides.map((guide) => {
-                                    const refImage = (guide as any).reference_photo_url || (guide.image_urls && guide.image_urls[0]) || '';
+                                    const refImage = (guide as unknown as { reference_photo_url?: string }).reference_photo_url || (guide.image_urls && guide.image_urls[0]) || '';
                                     return (
                                         <div key={guide.id} className="flex items-center space-x-4 border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
                                             <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
@@ -490,14 +490,14 @@ export default function HomeDetailsPage() {
                             </div>
 
                             {/* Imagen de referencia */}
-                            {(selectedStylingGuide as any).reference_photo_url && (
+                            {(selectedStylingGuide && selectedStylingGuide.reference_photo_url) && (
                                 <div>
                                     <h5 className="font-medium text-gray-700 mb-2">Imagen de referencia</h5>
                                     <div className="flex justify-center">
                                         <img
-                                            src={(selectedStylingGuide as any).reference_photo_url}
+                                            src={selectedStylingGuide.reference_photo_url as string}
                                             alt="Imagen de referencia"
-                                            className="max-w-full max-h-96 object-contain rounded shadow-sm"
+                                            className="max-w-full max-h-64 object-contain rounded shadow-sm"
                                         />
                                     </div>
                                 </div>
@@ -508,12 +508,12 @@ export default function HomeDetailsPage() {
                                 <div>
                                     <h5 className="font-medium text-gray-700 mb-2">Galería de imágenes ({selectedStylingGuide.image_urls.length})</h5>
                                     <div className="grid grid-cols-1 gap-3">
-                                        {selectedStylingGuide.image_urls.map((image, index) => (
+                                        {selectedStylingGuide.image_urls && selectedStylingGuide.image_urls.map((image: string, index: number) => (
                                             <div key={index} className="flex justify-center">
                                                 <img
                                                     src={image}
                                                     alt={`Imagen ${index + 1}`}
-                                                    className="max-w-full max-h-96 object-contain rounded shadow-sm"
+                                                    className="max-w-full max-h-64 object-contain rounded shadow-sm"
                                                 />
                                             </div>
                                         ))}
