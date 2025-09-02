@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { Home, Room, HomeInventoryWithRelations, StylingGuide, ApplianceGuide, TechnicalPlan, Category } from '@/lib/types';
+import { Home, Room, HomeInventoryWithRelations, StylingGuide, ApplianceGuide, TechnicalPlan, Category, Playbook } from '@/lib/types';
 import { Modal } from '@/components/ui/Modal';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
@@ -15,6 +15,7 @@ interface HomeDetails {
     stylingGuides: StylingGuide[];
     applianceGuides: ApplianceGuide[];
     technicalPlans: TechnicalPlan[];
+    playbooks: Playbook[];
     categories: Category[];
     stats: {
         rooms_count: number;
@@ -22,6 +23,7 @@ interface HomeDetails {
         styling_guides_count: number;
         appliance_guides_count: number;
         technical_plans_count: number;
+        playbooks_count: number;
     };
 }
 
@@ -35,6 +37,7 @@ export default function HomeDetailsPage() {
     const [categoryFilter, setCategoryFilter] = useState<string>('');
     const [isItemOpen, setIsItemOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<HomeInventoryWithRelations | null>(null);
+    const [selectedStylingGuide, setSelectedStylingGuide] = useState<StylingGuide | null>(null);
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
@@ -53,6 +56,7 @@ export default function HomeDetailsPage() {
                     stylingGuidesResponse,
                     applianceGuidesResponse,
                     technicalPlansResponse,
+                    playbooksResponse,
                     categoriesResponse
                 ] = await Promise.all([
                     apiClient.getHomeById(homeId),
@@ -61,6 +65,7 @@ export default function HomeDetailsPage() {
                     apiClient.listStylingGuidesByHome(homeId),
                     apiClient.listApplianceGuidesByHome(homeId),
                     apiClient.listTechnicalPlans({ home_id: homeId }),
+                    apiClient.listPlaybooksByHome(homeId),
                     apiClient.listCategories()
                 ]);
 
@@ -74,6 +79,7 @@ export default function HomeDetailsPage() {
                     styling_guides_count: stylingGuidesResponse.data.length,
                     appliance_guides_count: applianceGuidesResponse.data.length,
                     technical_plans_count: technicalPlansResponse.data.length,
+                    playbooks_count: playbooksResponse.data.length,
                 };
 
                 console.log('Datos cargados exitosamente:', {
@@ -92,6 +98,7 @@ export default function HomeDetailsPage() {
                     stylingGuides: stylingGuidesResponse.data,
                     applianceGuides: applianceGuidesResponse.data,
                     technicalPlans: technicalPlansResponse.data,
+                    playbooks: playbooksResponse.data,
                     categories: categoriesResponse.data,
                     stats
                 });
@@ -375,25 +382,34 @@ export default function HomeDetailsPage() {
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-bold text-gray-900 mb-4">🎨 Guías de Estilo</h2>
                         {stylingGuides.length > 0 ? (
-                            <div className="space-y-3">
-                                {stylingGuides.map((guide) => (
-                                    <div key={guide.id} className="border border-gray-200 rounded-lg p-3">
-                                        <h4 className="font-medium text-gray-900">{guide.title}</h4>
-                                        <p className="text-sm text-gray-600 line-clamp-2">Guía de estilo para la habitación</p>
-                                        {guide.image_urls && guide.image_urls.length > 0 && (
-                                            <div className="mt-2 flex space-x-2">
-                                                {guide.image_urls.slice(0, 3).map((image: string, index: number) => (
-                                                    <img
-                                                        key={index}
-                                                        src={image}
-                                                        alt={`Imagen ${index + 1}`}
-                                                        className="w-8 h-8 object-cover rounded"
-                                                    />
-                                                ))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {stylingGuides.map((guide) => {
+                                    const refImage = (guide as any).reference_photo_url || (guide.image_urls && guide.image_urls[0]) || '';
+                                    return (
+                                        <div key={guide.id} className="flex items-center space-x-4 border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+                                            <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                                                {refImage ? (
+                                                    <img src={refImage} alt={guide.title} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-300">—</div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-sm font-semibold text-gray-900 line-clamp-1" title={guide.title}>{guide.title}</div>
+                                                <div className="text-xs text-gray-600 line-clamp-2">Guía de estilo para la habitación</div>
+                                                <div className="mt-1 flex items-center space-x-2 text-[11px] text-gray-500">
+                                                    {guide.image_urls && guide.image_urls.length > 0 && <span>🖼️ {guide.image_urls.length} imágenes</span>}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setSelectedStylingGuide(guide)}
+                                                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex-shrink-0"
+                                            >
+                                                Ver guía
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <p className="text-gray-500">No hay guías de estilo disponibles.</p>
@@ -444,7 +460,94 @@ export default function HomeDetailsPage() {
                         <p className="text-gray-500">No hay planos técnicos disponibles.</p>
                     )}
                 </div>
+
+
             </div>
+
+            {selectedStylingGuide && (
+                <Modal
+                    isOpen={!!selectedStylingGuide}
+                    onClose={() => setSelectedStylingGuide(null)}
+                    title="Guía de Estilo"
+                >
+                    <div className="p-6 max-h-[80vh] overflow-y-auto">
+                        <div className="space-y-6">
+                            {/* Información de la habitación */}
+                            <div className="border-b border-gray-200 pb-4">
+                                <h4 className="font-medium text-gray-900 mb-2">{selectedStylingGuide.title}</h4>
+                                <p className="text-sm text-gray-600">
+                                    Habitación: {homeDetails.rooms.find(r => r.id === selectedStylingGuide.room_id)?.name || 'Sin asignar'}
+                                </p>
+                            </div>
+
+                            {/* Imagen de referencia */}
+                            {(selectedStylingGuide as any).reference_photo_url && (
+                                <div>
+                                    <h5 className="font-medium text-gray-700 mb-2">Imagen de referencia</h5>
+                                    <img
+                                        src={(selectedStylingGuide as any).reference_photo_url}
+                                        alt="Imagen de referencia"
+                                        className="w-full max-h-64 object-cover rounded"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Galería de imágenes */}
+                            {selectedStylingGuide.image_urls && selectedStylingGuide.image_urls.length > 0 && (
+                                <div>
+                                    <h5 className="font-medium text-gray-700 mb-2">Galería de imágenes ({selectedStylingGuide.image_urls.length})</h5>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {selectedStylingGuide.image_urls.map((image, index) => (
+                                            <img
+                                                key={index}
+                                                src={image}
+                                                alt={`Imagen ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Playbooks relacionados */}
+                            {(() => {
+                                const relatedPlaybooks = homeDetails.playbooks.filter(p => p.room_id === selectedStylingGuide.room_id);
+                                return relatedPlaybooks.length > 0 ? (
+                                    <div>
+                                        <h5 className="font-medium text-gray-700 mb-3">📋 Playbooks relacionados ({relatedPlaybooks.length})</h5>
+                                        <div className="space-y-3">
+                                            {relatedPlaybooks.map((playbook) => (
+                                                <div key={playbook.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <h6 className="font-medium text-gray-900 text-sm">{playbook.title}</h6>
+                                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ml-2 flex-shrink-0">
+                                                            {playbook.type}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 mb-2">⏱️ {playbook.estimated_time}</p>
+                                                    <div className="text-xs text-gray-500 space-y-1">
+                                                        <div className="line-clamp-2">
+                                                            <span className="font-medium">Tareas:</span> {playbook.tasks}
+                                                        </div>
+                                                        <div className="line-clamp-2">
+                                                            <span className="font-medium">Materiales:</span> {playbook.materials}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <h5 className="font-medium text-gray-700 mb-2">📋 Playbooks relacionados</h5>
+                                        <p className="text-sm text-gray-500">No hay playbooks disponibles para esta habitación.</p>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }
