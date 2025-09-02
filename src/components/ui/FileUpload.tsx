@@ -45,9 +45,30 @@ export function FileUpload({
 
     // Validar archivo
     const validateFile = (file: File): string | null => {
-        // Validar tipo
-        if (accept && !file.type.match(accept.replace('*', '.*'))) {
-            return `Tipo de archivo no permitido: ${file.type}`;
+        // Validar tipo contra "accept" que puede contener múltiples tokens separados por comas
+        if (accept) {
+            const tokens = accept.split(',').map(t => t.trim()).filter(Boolean);
+            const fileType = file.type.toLowerCase(); // ej: image/jpeg
+            const fileName = file.name.toLowerCase();
+
+            const matches = tokens.some(token => {
+                const t = token.toLowerCase();
+                if (t.endsWith('/*')) {
+                    // image/* => comparar el prefijo mayor
+                    const prefix = t.slice(0, t.indexOf('/*'));
+                    return fileType.startsWith(prefix + '/');
+                }
+                if (t.startsWith('.')) {
+                    // .jpg, .png, .pdf, etc => validar por extensión del nombre
+                    return fileName.endsWith(t);
+                }
+                // token de tipo MIME completo, ej: image/jpeg o application/pdf
+                return fileType === t;
+            });
+
+            if (!matches) {
+                return `Tipo de archivo no permitido: ${file.type || file.name}`;
+            }
         }
 
         // Validar tamaño

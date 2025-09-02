@@ -4,7 +4,7 @@ import { config } from '@/lib/config';
 
 // Hook personalizado para cargar datos de la API
 export function useApiData<T>(
-  endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms',
+  endpoint: 'categories' | 'brands' | 'homes' | 'rooms-type' | 'suppliers' | 'amenities' | 'rooms' | 'homes/with-completeness',
   params?: { page?: number; pageSize?: number }
 ) {
   const [data, setData] = useState<T[]>([]);
@@ -30,6 +30,9 @@ export function useApiData<T>(
           break;
         case 'homes':
           response = await apiClient.listHomes(params);
+          break;
+        case 'homes/with-completeness':
+          response = await apiClient.listHomesWithCompleteness(params);
           break;
         case 'rooms-type':
           response = await apiClient.listRoomTypes(params);

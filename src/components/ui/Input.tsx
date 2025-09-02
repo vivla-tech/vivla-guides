@@ -14,6 +14,7 @@ interface InputProps {
     className?: string;
     children?: React.ReactNode;
     required?: boolean;
+    defaultValue?: string | number;
 }
 
 export function Input({
@@ -28,7 +29,8 @@ export function Input({
     disabled = false,
     className = '',
     children,
-    required = false
+    required = false,
+    defaultValue,
 }: InputProps) {
     const baseClasses = `text-gray-700 w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${error ? 'border-red-300' : 'border-gray-300'} ${className}`;
 
@@ -41,6 +43,7 @@ export function Input({
                     className={baseClasses}
                     placeholder={placeholder}
                     disabled={disabled}
+                    defaultValue={defaultValue as string | number | readonly string[] | undefined}
                 />
             );
         }
@@ -51,6 +54,7 @@ export function Input({
                     {...register}
                     className={baseClasses}
                     disabled={disabled}
+                    defaultValue={defaultValue as string | number | readonly string[] | undefined}
                 >
                     <option value="">{placeholder || 'Selecciona una opción'}</option>
                     {children}
@@ -67,6 +71,7 @@ export function Input({
                 min={min}
                 step={step}
                 disabled={disabled}
+                defaultValue={defaultValue as string | number | readonly string[] | undefined}
             />
         );
     };

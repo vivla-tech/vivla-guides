@@ -41,6 +41,9 @@ export interface Amenity {
   description: string;            // Descripción (TEXT)
   base_price: number;            // Precio base
   images: string[];              // Array de URLs de imágenes (JSONB)
+  // Relaciones (opcionales) cuando vienen pobladas desde el backend
+  category?: Category;
+  brand?: Brand;
   created_at: Date;
   updated_at: Date;
 }
@@ -91,6 +94,13 @@ export interface HomeInventory {
   notes?: string;                // Notas (TEXT) (opcional)
   created_at: Date;
   updated_at: Date;
+}
+
+// 8.1. HOME_INVENTORY con relaciones (para respuestas de API)
+export interface HomeInventoryWithRelations extends HomeInventory {
+  amenity?: Amenity;             // Relación con el amenity
+  room?: Room;                   // Relación con la habitación
+  supplier?: Supplier;           // Relación con el proveedor
 }
 
 // 9. STYLING_GUIDE (Guías de Estilo)
@@ -167,3 +177,22 @@ export type ListMeta = { page: number; pageSize: number; total: number; totalPag
 export type ListResponse<T> = { success: true; data: T[]; meta: ListMeta };
 export type ItemResponse<T> = { success: true; data: T };
 export type ErrorResponse = { success: false; error: { message: string; details?: { field?: string; message: string }[] } };
+
+// ===== TIPOS DE COMPLETITUD =====
+export interface HomeCountsSummary {
+  rooms: number;
+  technical_plans: number;
+  appliance_guides: number;
+  inventory: number;
+  styling_guides: number;
+  playbooks: number;
+}
+
+export interface HomeWithCompleteness extends Home {
+  completeness: number; // 0-100
+  present: string[];
+  missing: string[];
+  counts: HomeCountsSummary;
+}
+
+export type HomesCompletenessReport = Record<string, number>; // home_id -> completeness
