@@ -275,20 +275,20 @@ export default function HomeInventoryPage() {
                                                                 </div>
                                                             )}
 
-                                                            {item.amenity?.category && (
+                                                            {item.amenity?.category_id && (
                                                                 <div className="flex items-center space-x-1">
                                                                     <span className="text-gray-500">Categoría:</span>
                                                                     <span className="font-medium text-gray-900">
-                                                                        {item.amenity.category.name}
+                                                                        {item.amenity.category_id}
                                                                     </span>
                                                                 </div>
                                                             )}
 
-                                                            {item.amenity?.brand && (
+                                                            {item.amenity?.brand_id && (
                                                                 <div className="flex items-center space-x-1">
                                                                     <span className="text-gray-500">Marca:</span>
                                                                     <span className="font-medium text-gray-900">
-                                                                        {item.amenity.brand.name}
+                                                                        {item.amenity.brand_id}
                                                                     </span>
                                                                 </div>
                                                             )}

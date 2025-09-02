@@ -5,16 +5,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CreateCategory, Category } from '@/lib/types';
-import { createApiClient } from '@/lib/apiClient';
-import { config } from '@/lib/config';
 import { Input } from '@/components/ui/Input';
-import { useApiData } from '@/hooks/useApiData';
 import { DataTable } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
 import { EditCategoryForm } from '@/components/ui/EditCategoryForm';
 import { DeleteCategoryConfirmation } from '@/components/ui/DeleteCategoryConfirmation';
 import { ColumnDef } from '@tanstack/react-table';
-import Link from 'next/link';
+import { useApiData } from '@/hooks/useApiData';
+import { createApiClient } from '@/lib/apiClient';
+import { config } from '@/lib/config';
 
 // Esquema de validación para crear una categoría
 const createCategorySchema = z.object({
@@ -30,7 +29,7 @@ export default function CreateCategoryPage() {
 
     // Estados para paginación del servidor
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(20);
 
     // Estados para edición
     const [isEditing, setIsEditing] = useState(false);
@@ -42,21 +41,12 @@ export default function CreateCategoryPage() {
 
     const apiClient = createApiClient(config.apiUrl);
 
-    // Cargar categorías existentes con paginación del servidor
-    const categoriesParams = useMemo(() => ({
-        page: currentPage,
-        pageSize: pageSize
-    }), [currentPage, pageSize]);
-
-    const { data: categories, meta: categoriesMeta, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories', categoriesParams);
-
-    // Función para manejar la edición de una categoría
+    // Funciones para manejar edición y eliminación
     const handleEditCategory = (category: Category) => {
         setEditingCategory(category);
         setIsEditing(true);
     };
 
-    // Función para manejar la eliminación de una categoría
     const handleDeleteCategory = (category: Category) => {
         setDeletingCategory(category);
         setIsDeleting(true);
@@ -69,7 +59,7 @@ export default function CreateCategoryPage() {
             header: 'Nombre',
             size: 200,
             cell: ({ row }) => (
-                <div className="font-medium text-gray-900">
+                <div className="font-semibold text-gray-900 text-base">
                     {row.getValue('name')}
                 </div>
             ),
@@ -79,28 +69,38 @@ export default function CreateCategoryPage() {
             header: 'Descripción',
             size: 400,
             cell: ({ row }) => (
-                <div className="text-sm text-gray-600">
+                <div className="text-gray-700 leading-relaxed">
                     {row.getValue('description')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'id',
+            header: 'ID',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="text-xs text-gray-500 font-mono">
+                    {row.getValue('id')}
                 </div>
             ),
         },
         {
             id: 'actions',
             header: 'Acciones',
-            size: 150,
+            size: 200,
             cell: ({ row }) => {
                 const category = row.original;
                 return (
-                    <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
                         <button
                             onClick={() => handleEditCategory(category)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Editar
                         </button>
                         <button
                             onClick={() => handleDeleteCategory(category)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
                             Eliminar
                         </button>
@@ -110,11 +110,19 @@ export default function CreateCategoryPage() {
         },
     ];
 
+    // Cargar categorías con paginación del servidor
+    const categoriesParams = useMemo(() => ({
+        page: currentPage,
+        pageSize: pageSize
+    }), [currentPage, pageSize]);
+
+    const { data: categories, meta: categoriesMeta, isLoading: isLoadingCategories, error: categoriesError } = useApiData<Category>('categories', categoriesParams);
+
     const {
         register,
         handleSubmit,
-        reset,
         formState: { errors },
+        reset,
     } = useForm<CreateCategoryFormData>({
         resolver: zodResolver(createCategorySchema),
     });
@@ -124,30 +132,32 @@ export default function CreateCategoryPage() {
         setSubmitMessage(null);
 
         try {
-            const categoryData: CreateCategory = {
-                ...data,
+
+            const apiData: CreateCategory = {
+                name: data.name,
+                description: data.description,
             };
 
-            const response = await apiClient.createCategory(categoryData);
+            const response = await apiClient.createCategory(apiData);
 
             if (response.success) {
                 setSubmitMessage({
                     type: 'success',
                     message: 'Categoría creada exitosamente!'
                 });
+
+                // Limpiar formulario
                 reset();
-                window.location.reload();
             } else {
                 setSubmitMessage({
                     type: 'error',
-                    message: response.message || 'Error al crear la categoría'
+                    message: 'Error al crear la categoría en el servidor'
                 });
             }
         } catch (error) {
-            console.error('Error al crear categoría:', error);
             setSubmitMessage({
                 type: 'error',
-                message: 'Error al crear la categoría. Por favor, intenta de nuevo.'
+                message: error instanceof Error ? error.message : 'Error al crear la categoría'
             });
         } finally {
             setIsSubmitting(false);
@@ -157,48 +167,41 @@ export default function CreateCategoryPage() {
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Volver al Panel de Administración
-                    </Link>
-                    <h1 className="text-3xl font-bold text-gray-900">Crear Nueva Categoría</h1>
-                    <p className="text-gray-600 mt-2">Añade una nueva categoría de productos</p>
-                </div>
-
-                {/* Formulario */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Mensaje de éxito/error */}
-                        {submitMessage && (
-                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
-                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                    : 'bg-red-50 border border-red-200 text-red-800'
-                                }`}>
-                                {submitMessage.message}
-                            </div>
-                        )}
+                    <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                        Crear Nueva Categoría
+                    </h1>
 
-                        {/* Nombre */}
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        {/* Nombre de la categoría */}
                         <Input
                             label="Nombre de la Categoría"
-                            type="text"
-                            {...register('name')}
+                            register={register('name')}
                             error={errors.name?.message}
+                            placeholder="Ej: Electrodomésticos, Muebles, Decoración..."
                             required
                         />
 
                         {/* Descripción */}
                         <Input
-                            label="Descripción"
                             type="textarea"
-                            {...register('description')}
+                            label="Descripción"
+                            register={register('description')}
                             error={errors.description?.message}
+                            placeholder="Descripción detallada de la categoría y qué tipo de productos incluye..."
+                            rows={3}
                             required
                         />
+
+                        {/* Mensaje de estado */}
+                        {submitMessage && (
+                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
+                                ? 'bg-green-50 text-green-800 border border-green-200'
+                                : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                {submitMessage.message}
+                            </div>
+                        )}
 
                         {/* Botones */}
                         <div className="flex justify-end space-x-4">
@@ -218,23 +221,28 @@ export default function CreateCategoryPage() {
                             </button>
                         </div>
                     </form>
+
                 </div>
 
                 {/* Tabla de categorías existentes */}
-                <DataTable
-                    title="Categorías Existentes"
-                    columns={columns}
-                    data={categories}
-                    isLoading={isLoadingCategories}
-                    error={categoriesError}
-                    emptyMessage="No hay categorías creadas aún."
-                    serverSidePagination={true}
-                    totalCount={categoriesMeta?.total || 0}
-                    currentPage={currentPage}
-                    pageSize={pageSize}
-                    onPageChange={setCurrentPage}
-                    onPageSizeChange={setPageSize}
-                />
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <DataTable
+                        title="Categorías Existentes"
+                        columns={columns}
+                        data={categories}
+                        isLoading={isLoadingCategories}
+                        error={categoriesError}
+                        emptyMessage="No hay categorías creadas aún."
+                        // Paginación del servidor
+                        serverSidePagination={true}
+                        totalCount={categoriesMeta?.total || 0}
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        onPageChange={setCurrentPage}
+                        onPageSizeChange={setPageSize}
+                        useContainer={false}
+                    />
+                </div>
 
                 {/* Modal de edición */}
                 <Modal
@@ -255,6 +263,7 @@ export default function CreateCategoryPage() {
                             onSuccess={() => {
                                 setIsEditing(false);
                                 setEditingCategory(null);
+                                // Recargar datos
                                 window.location.reload();
                             }}
                         />
@@ -280,6 +289,7 @@ export default function CreateCategoryPage() {
                             onSuccess={() => {
                                 setIsDeleting(false);
                                 setDeletingCategory(null);
+                                // Recargar datos
                                 window.location.reload();
                             }}
                         />

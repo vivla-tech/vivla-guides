@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Home } from '@/lib/types';
+import type { Home } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
-import { createApiClient } from '@/lib/apiClient';
-import { config } from '@/lib/config';
 import Link from 'next/link';
 
 interface HomeStats {
@@ -20,8 +18,6 @@ export default function Home() {
   const [pageSize, setPageSize] = useState(12);
   const [searchQuery, setSearchQuery] = useState('');
   const [destinationFilter, setDestinationFilter] = useState('');
-
-  const apiClient = createApiClient(config.apiUrl);
 
   // Cargar casas con paginación
   const homesParams = useMemo(() => ({

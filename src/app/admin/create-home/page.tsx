@@ -15,7 +15,6 @@ import { Modal } from '@/components/ui/Modal';
 import { EditHomeForm } from '@/components/ui/EditHomeForm';
 import { DeleteConfirmation } from '@/components/ui/DeleteConfirmation';
 import { ColumnDef } from '@tanstack/react-table';
-import Link from 'next/link';
 
 // Esquema de validación para crear una casa
 const createHomeSchema = z.object({
@@ -26,6 +25,8 @@ const createHomeSchema = z.object({
 });
 
 type CreateHomeFormData = z.infer<typeof createHomeSchema>;
+
+
 
 export default function CreateHomePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,7 +99,7 @@ export default function CreateHomePage() {
             header: 'Nombre',
             size: 200,
             cell: ({ row }) => (
-                <div className="font-medium text-gray-900">
+                <div className="font-semibold text-gray-900 text-base">
                     {row.getValue('name')}
                 </div>
             ),
@@ -110,9 +111,10 @@ export default function CreateHomePage() {
             cell: ({ row }) => {
                 const destination = row.getValue('destination') as string;
                 return (
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${destination === 'vacacional' ? 'bg-blue-100 text-blue-800' :
-                            destination === 'residencial' ? 'bg-green-100 text-green-800' :
-                                'bg-purple-100 text-purple-800'
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${destination === 'vacacional' ? 'bg-blue-100 text-blue-800' :
+                        destination === 'residencial' ? 'bg-green-100 text-green-800' :
+                            destination === 'comercial' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
                         }`}>
                         {destination}
                     </span>
@@ -124,28 +126,38 @@ export default function CreateHomePage() {
             header: 'Dirección',
             size: 300,
             cell: ({ row }) => (
-                <div className="text-sm text-gray-600">
+                <div className="text-gray-700 leading-relaxed">
                     {row.getValue('address')}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'id',
+            header: 'ID',
+            size: 200,
+            cell: ({ row }) => (
+                <div className="text-xs text-gray-500 font-mono">
+                    {row.getValue('id')}
                 </div>
             ),
         },
         {
             id: 'actions',
             header: 'Acciones',
-            size: 150,
+            size: 200,
             cell: ({ row }) => {
                 const home = row.original;
                 return (
-                    <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
                         <button
                             onClick={() => handleEditHome(home)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             Editar
                         </button>
                         <button
                             onClick={() => handleDeleteHome(home)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
                             Eliminar
                         </button>
@@ -158,8 +170,8 @@ export default function CreateHomePage() {
     const {
         register,
         handleSubmit,
-        reset,
         formState: { errors },
+        reset,
     } = useForm<CreateHomeFormData>({
         resolver: zodResolver(createHomeSchema),
     });
@@ -169,34 +181,39 @@ export default function CreateHomePage() {
         setSubmitMessage(null);
 
         try {
-            // Crear objeto con los datos del formulario y las URLs de imagen
-            const homeData: CreateHome = {
-                ...data,
-                main_image: imageUrls.length > 0 ? imageUrls[0] : null, // Tomar la primera imagen
+            // Preparar datos para la API
+            const apiData: CreateHome = {
+                name: data.name,
+                destination: data.destination,
+                address: data.address,
+                main_image: imageUrls.length > 0 ? imageUrls[0] : '', // Usar la primera imagen subida
             };
 
-            const response = await apiClient.createHome(homeData);
+            // Llamada real a la API
+            const response = await apiClient.createHome(apiData);
 
             if (response.success) {
                 setSubmitMessage({
                     type: 'success',
                     message: 'Casa creada exitosamente!'
                 });
+
+                // Limpiar formulario
                 reset();
-                setImageUrls([]); // Limpiar las imágenes
-                // Recargar la página para mostrar la nueva casa en la tabla
-                window.location.reload();
+                setImageUrls([]); // Limpiar URLs de imagen
             } else {
+                // Manejar error de la API
                 setSubmitMessage({
                     type: 'error',
-                    message: response.message || 'Error al crear la casa'
+                    message: 'Error al crear la casa en el servidor'
                 });
             }
+
         } catch (error) {
             console.error('Error al crear casa:', error);
             setSubmitMessage({
                 type: 'error',
-                message: 'Error al crear la casa. Por favor, intenta de nuevo.'
+                message: error instanceof Error ? error.message : 'Error de conexión con el servidor'
             });
         } finally {
             setIsSubmitting(false);
@@ -205,77 +222,67 @@ export default function CreateHomePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 mb-4 inline-flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Volver al Panel de Administración
-                    </Link>
-                    <h1 className="text-3xl font-bold text-gray-900">Crear Nueva Casa</h1>
-                    <p className="text-gray-600 mt-2">Añade una nueva casa al sistema</p>
-                </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                        Crear Nueva Casa
+                    </h1>
 
-                {/* Formulario */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Mensaje de éxito/error */}
-                        {submitMessage && (
-                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
-                                    ? 'bg-green-50 border border-green-200 text-green-800'
-                                    : 'bg-red-50 border border-red-200 text-red-800'
-                                }`}>
-                                {submitMessage.message}
-                            </div>
-                        )}
-
-                        {/* Nombre */}
+                        {/* Nombre de la casa */}
                         <Input
                             label="Nombre de la Casa"
-                            type="text"
-                            {...register('name')}
+                            register={register('name')}
                             error={errors.name?.message}
+                            placeholder="Ej: Villa Mediterránea"
                             required
                         />
 
                         {/* Destino */}
                         <Input
-                            label="Destino"
                             type="select"
-                            {...register('destination')}
+                            label="Destino"
+                            register={register('destination')}
                             error={errors.destination?.message}
+                            placeholder="Selecciona un destino"
                             required
-                            options={[
-                                { value: '', label: 'Seleccionar destino' },
-                                { value: 'vacacional', label: 'Vacacional' },
-                                { value: 'residencial', label: 'Residencial' },
-                                { value: 'comercial', label: 'Comercial' }
-                            ]}
-                        />
+                        >
+                            <option value="vacacional">Vacacional</option>
+                            <option value="residencial">Residencial</option>
+                            <option value="comercial">Comercial</option>
+                            <option value="mixto">Mixto</option>
+                        </Input>
 
                         {/* Dirección */}
                         <Input
-                            label="Dirección"
                             type="textarea"
-                            {...register('address')}
+                            label="Dirección"
+                            register={register('address')}
                             error={errors.address?.message}
+                            placeholder="Dirección completa de la casa"
+                            rows={3}
                             required
                         />
 
-                        {/* Imagen Principal */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Imagen Principal
-                            </label>
-                            <FileUpload
-                                onUrlsChange={setImageUrls}
-                                acceptedFileTypes={['image/*']}
-                                maxFiles={1}
-                                maxFileSize={5 * 1024 * 1024} // 5MB
-                            />
-                        </div>
+                        {/* Imagen principal */}
+                        <FileUpload
+                            label="Imagen Principal de la Casa"
+                            onUrlsChange={setImageUrls}
+                            accept="image/*"
+                            maxFiles={1}
+                            maxSize={5}
+                            basePath="homes"
+                        />
+
+                        {/* Mensaje de estado */}
+                        {submitMessage && (
+                            <div className={`p-4 rounded-md ${submitMessage.type === 'success'
+                                ? 'bg-green-50 text-green-800 border border-green-200'
+                                : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}>
+                                {submitMessage.message}
+                            </div>
+                        )}
 
                         {/* Botones */}
                         <div className="flex justify-end space-x-4">
