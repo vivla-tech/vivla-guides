@@ -97,12 +97,17 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🏠 VIVLA Guides - Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Gestiona y visualiza todas las casas, su inventario y guías asociadas
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                🏠 VIVLA Guides - Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Gestiona y visualiza todas las casas, su inventario y guías asociadas
+              </p>
+            </div>
+
+          </div>
         </div>
 
         {/* Bloque de estadísticas eliminado */}

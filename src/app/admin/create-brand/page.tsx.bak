@@ -320,5 +320,6 @@ export default function CreateBrandPage() {
                     </Modal>
                 </div>
             </div>
-            );
+        );
+    }
 }
