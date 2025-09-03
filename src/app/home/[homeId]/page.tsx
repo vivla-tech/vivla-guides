@@ -208,14 +208,14 @@ export default function HomeDetailPage() {
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Acciones Rápidas</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Link
-                            href={`/wizard/inventory?homeId=${homeId}`}
+                            href={`/home/${homeId}/inventory`}
                             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <span className="text-blue-600 text-lg">📦</span>
                             </div>
                             <div>
-                                <h3 className="font-medium text-gray-900">Gestionar Inventario</h3>
+                                <h3 className="font-medium text-gray-900">Ver Inventario</h3>
                                 <p className="text-sm text-gray-500">{inventory.length} items</p>
                             </div>
                         </Link>
@@ -291,7 +291,7 @@ export default function HomeDetailPage() {
                         )}
                         <div className="mt-4">
                             <Link
-                                href={`/wizard/inventory?homeId=${homeId}`}
+                                href={`/home/${homeId}/inventory`}
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                             >
                                 Ver inventario completo →

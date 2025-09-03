@@ -375,16 +375,17 @@ export default function InventoryWizardPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors">
-                                                Editar
-                                            </button>
+
                                         </div>
                                     ))}
                                     {homeInventory.length > 3 && (
                                         <div className="text-center">
-                                            <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            <Link
+                                                href={`/home/${wizardState.home?.id}/inventory`}
+                                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                            >
                                                 Ver todos los productos ({homeInventory.length})
-                                            </button>
+                                            </Link>
                                         </div>
                                     )}
                                 </div>
