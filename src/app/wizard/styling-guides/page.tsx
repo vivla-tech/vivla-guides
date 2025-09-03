@@ -299,13 +299,19 @@ export default function StylingGuidesWizardPage() {
         } else {
             setSubmitMessage({
                 type: 'success',
-                message: '¡Guía de estilo creada exitosamente! Redirigiendo...'
+                message: '¡Guía de estilo creada exitosamente!'
             });
+
+            // Mostrar enlace para ver todas las guías después de 2 segundos
+            setTimeout(() => {
+                setSubmitMessage({
+                    type: 'success',
+                    message: `¡Guía de estilo creada exitosamente! ¿Quieres ver todas las guías de ${wizardState.home?.name}?`
+                });
+            }, 2000);
         }
 
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 2000);
+        // No redirigir automáticamente, dejar que el usuario decida
     };
 
     const renderStepContent = () => {
@@ -721,7 +727,17 @@ export default function StylingGuidesWizardPage() {
                                 ? 'bg-green-50 text-green-800 border border-green-200'
                                 : 'bg-red-50 text-red-800 border border-red-200'
                                 }`}>
-                                {submitMessage.message}
+                                <div className="flex items-center justify-between">
+                                    <span>{submitMessage.message}</span>
+                                    {submitMessage.type === 'success' && submitMessage.message.includes('¿Quieres ver todas las guías') && (
+                                        <Link
+                                            href={`/home/${wizardState.home?.id}/styling-guides`}
+                                            className="ml-4 px-3 py-1 text-xs font-medium text-green-700 bg-green-100 border border-green-200 rounded hover:bg-green-200"
+                                        >
+                                            Ver Guías →
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         )}
 

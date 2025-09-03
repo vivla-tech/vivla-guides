@@ -221,14 +221,14 @@ export default function HomeDetailPage() {
                         </Link>
 
                         <Link
-                            href={`/wizard/styling-guides?homeId=${homeId}`}
+                            href={`/home/${homeId}/styling-guides`}
                             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <span className="text-purple-600 text-lg">🎨</span>
                             </div>
                             <div>
-                                <h3 className="font-medium text-gray-900">Guías de Estilo</h3>
+                                <h3 className="font-medium text-gray-900">Ver Guías de Estilo</h3>
                                 <p className="text-sm text-gray-500">{stylingGuides.filter(g => rooms.some(r => r.id === g.room_id)).length} guías</p>
                             </div>
                         </Link>
@@ -412,14 +412,7 @@ export default function HomeDetailPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 pt-3 border-t border-gray-100">
-                                                <Link
-                                                    href={`/wizard/styling-guides?homeId=${homeId}&roomId=${room.id}`}
-                                                    className="text-purple-600 hover:text-purple-800 text-xs font-medium"
-                                                >
-                                                    Gestionar guías →
-                                                </Link>
-                                            </div>
+
                                         </div>
                                     );
                                 })}
@@ -427,6 +420,15 @@ export default function HomeDetailPage() {
                         ) : (
                             <p className="text-gray-500 text-center py-8">No hay habitaciones definidas</p>
                         )}
+
+                        <div className="mt-4">
+                            <Link
+                                href={`/home/${homeId}/styling-guides`}
+                                className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                            >
+                                Ver todas las guías de estilo →
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
