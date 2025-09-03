@@ -10,6 +10,7 @@ import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
+import HomeSelector from '@/components/wizard/HomeSelector';
 
 // Esquemas de validación para cada paso
 const homeSchema = z.object({
@@ -34,9 +35,16 @@ const createAmenitySchema = z.object({
     base_price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
 });
 
+const createBrandSchema = z.object({
+    name: z.string().min(1, 'El nombre de la marca es requerido'),
+    website: z.string().optional(),
+    contact_info: z.string().optional(),
+});
+
 type HomeFormData = z.infer<typeof homeSchema>;
 type AddInventoryFormData = z.infer<typeof addInventorySchema>;
 type CreateAmenityFormData = z.infer<typeof createAmenitySchema>;
+type CreateBrandFormData = z.infer<typeof createBrandSchema>;
 
 interface WizardState {
     currentStep: number;
@@ -65,10 +73,11 @@ export default function InventoryWizardPage() {
     const [showCreateAmenityModal, setShowCreateAmenityModal] = useState(false);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+
+
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
     // Cargar datos de soporte
-    const { data: homesWithCompleteness, isLoading: loadingHomes } = useApiData<HomeWithCompleteness>('homes/with-completeness', { pageSize: 100 });
     const { data: categories } = useApiData<Category>('categories');
     const { data: brands } = useApiData<Brand>('brands');
 
@@ -87,6 +96,8 @@ export default function InventoryWizardPage() {
             base_price: 0,
         }
     });
+
+
 
     const handleNextStep = () => {
         if (wizardState.currentStep < STEPS.length) {
@@ -281,101 +292,23 @@ export default function InventoryWizardPage() {
         }
     };
 
+
+
     const renderStepContent = () => {
         switch (wizardState.currentStep) {
             case 1:
                 return (
-                    <div className="space-y-6">
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                Seleccionar Casa
-                            </h2>
-                            <p className="text-gray-600">
-                                Elige la casa para la que quieres completar su inventario
-                            </p>
-                            {!loadingHomes && homesWithCompleteness && homesWithCompleteness.length > 0 && (
-                                <p className="text-sm text-gray-500 mt-2">
-                                    Mostrando {homesWithCompleteness.length} casa{homesWithCompleteness.length !== 1 ? 's' : ''} (ordenadas por completitud)
-                                </p>
-                            )}
-                        </div>
-
-                        {loadingHomes ? (
-                            <div className="text-center py-12">
-                                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                <p className="text-gray-500">Cargando casas...</p>
-                            </div>
-                        ) : homesWithCompleteness && homesWithCompleteness.length > 0 ? (
-                            <div className="space-y-4">
-                                {homesWithCompleteness
-                                    .sort((a, b) => a.completeness - b.completeness)
-                                    .map((home) => (
-                                        <div key={home.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                        {home.main_image ? (
-                                                            <img src={home.main_image} alt={home.name} className="w-full h-full object-cover rounded-lg" />
-                                                        ) : (
-                                                            <span className="text-blue-600 text-xl">🏠</span>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-semibold text-gray-900">{home.name}</h3>
-                                                        <p className="text-sm text-gray-500">{home.destination}</p>
-                                                        <p className="text-sm text-gray-500">{home.address}</p>
-
-                                                        {/* Progress bar de completitud */}
-                                                        <div className="mt-2">
-                                                            <div className="flex items-center space-x-2">
-                                                                <div className="flex-1">
-                                                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                                                        <div
-                                                                            className={`h-2 rounded-full transition-all duration-300 $${home.completeness >= 75 ? 'bg-green-500' :
-                                                                                home.completeness >= 50 ? 'bg-yellow-500' :
-                                                                                    home.completeness >= 25 ? 'bg-orange-500' : 'bg-red-500'
-                                                                                }`}
-                                                                            style={{ width: `${home.completeness}%` }}
-                                                                        ></div>
-                                                                    </div>
-                                                                </div>
-                                                                <span className="text-sm text-gray-600">{home.completeness}%</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Contadores */}
-                                                        <div className="flex space-x-4 mt-2 text-xs text-gray-500">
-                                                            <span>📦 {home.counts.inventory} productos</span>
-                                                            <span>🎨 {home.counts.styling_guides} guías</span>
-                                                            <span>⚡ {home.counts.appliance_guides} electrodomésticos</span>
-                                                            <span>📋 {home.counts.technical_plans} planos</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => {
-                                                        setWizardState(prev => ({ ...prev, home }));
-                                                        loadHomeInventory(home.id);
-                                                        handleNextStep();
-                                                    }}
-                                                    className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                                                >
-                                                    Completar Inventario
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12">
-                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <span className="text-gray-400 text-xl">🏠</span>
-                                </div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay casas disponibles</h3>
-                                <p className="text-gray-500">Crea una casa primero desde el panel de administración.</p>
-                            </div>
-                        )}
-                    </div>
+                    <HomeSelector
+                        selectedHome={wizardState.home}
+                        onHomeSelect={(home) => {
+                            setWizardState(prev => ({ ...prev, home }));
+                            loadHomeInventory(home.id);
+                            handleNextStep();
+                        }}
+                        title="Seleccionar Casa para Inventario"
+                        description="Elige la casa para la que quieres gestionar el inventario"
+                        showCompleteness={true}
+                    />
                 );
 
             case 2:
@@ -939,6 +872,8 @@ export default function InventoryWizardPage() {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 }

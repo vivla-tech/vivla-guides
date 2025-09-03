@@ -10,6 +10,7 @@ import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
+import HomeSelector from '@/components/wizard/HomeSelector';
 
 // Esquemas de validación para cada paso
 const createStylingGuideSchema = z.object({
@@ -69,8 +70,7 @@ export default function StylingGuidesWizardPage() {
 
     const apiClient = useMemo(() => createApiClient(config.apiUrl), []);
 
-    // Cargar casas con completitud y tipos de habitación
-    const { data: homesWithCompleteness, isLoading: loadingHomes } = useApiData<HomeWithCompleteness>('homes/with-completeness', { pageSize: 100 });
+    // Cargar tipos de habitación
     const { data: roomTypesData } = useApiData<RoomType>('rooms-type', { pageSize: 100 });
 
     useEffect(() => {
@@ -283,62 +283,20 @@ export default function StylingGuidesWizardPage() {
                             <p className="text-gray-600">
                                 Elige la casa y habitación para la que quieres crear una guía de estilo
                             </p>
-                            {!loadingHomes && homesWithCompleteness && homesWithCompleteness.length > 0 && (
-                                <p className="text-sm text-gray-500 mt-2">
-                                    Mostrando {homesWithCompleteness.length} casa{homesWithCompleteness.length !== 1 ? 's' : ''} disponibles
-                                </p>
-                            )}
                         </div>
 
                         {/* Selección de Casa */}
                         {!wizardState.home && (
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900">1. Selecciona una Casa</h3>
-                                {loadingHomes ? (
-                                    <div className="text-center py-12">
-                                        <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                        <p className="text-gray-500">Cargando casas...</p>
-                                    </div>
-                                ) : homesWithCompleteness && homesWithCompleteness.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {homesWithCompleteness.map((home) => (
-                                            <div
-                                                key={home.id}
-                                                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                                                onClick={() => {
-                                                    setWizardState(prev => ({ ...prev, home }));
-                                                    loadRooms(home.id);
-                                                }}
-                                            >
-                                                <div className="flex items-center space-x-3 mb-3">
-                                                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                        {home.main_image ? (
-                                                            <img src={home.main_image} alt={home.name} className="w-full h-full object-cover rounded-lg" />
-                                                        ) : (
-                                                            <span className="text-purple-600 text-xl">🏠</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <h4 className="font-semibold text-gray-900">{home.name}</h4>
-                                                        <p className="text-sm text-gray-500">{home.destination}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    <span>🎨 {home.counts.styling_guides} guías de estilo</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <span className="text-gray-400 text-xl">🏠</span>
-                                        </div>
-                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay casas disponibles</h3>
-                                        <p className="text-gray-500">Crea una casa primero desde el panel de administración.</p>
-                                    </div>
-                                )}
-                            </div>
+                            <HomeSelector
+                                selectedHome={wizardState.home}
+                                onHomeSelect={(home) => {
+                                    setWizardState(prev => ({ ...prev, home }));
+                                    loadRooms(home.id);
+                                }}
+                                title="Seleccionar Casa para Guía de Estilo"
+                                description="Elige la casa para la que quieres crear una guía de estilo"
+                                showCompleteness={true}
+                            />
                         )}
 
                         {/* Selección de Habitación */}
