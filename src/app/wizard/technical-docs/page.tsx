@@ -47,6 +47,12 @@ function TechnicalDocsWizardContent() {
     const [loadingPlans, setLoadingPlans] = useState(false);
     const [showPlanForm, setShowPlanForm] = useState(false);
     const [planFileUrls, setPlanFileUrls] = useState<string[]>([]);
+    const [editingPlan, setEditingPlan] = useState<TechnicalPlan | null>(null);
+    const [deletingPlan, setDeletingPlan] = useState<TechnicalPlan | null>(null);
+    const [editPlanForm, setEditPlanForm] = useState({
+        title: '',
+        description: ''
+    });
 
     // Estados para guías de electrodomésticos
     const [applianceGuides, setApplianceGuides] = useState<ApplianceGuide[]>([]);
@@ -75,6 +81,7 @@ function TechnicalDocsWizardContent() {
                             setSelectedHome(foundHome);
                             loadTechnicalPlans(foundHome.id);
                             loadLinkedGuides(foundHome.id);
+                            loadAllApplianceGuides();
                         }
                     }
                 } catch (error) {
@@ -127,15 +134,26 @@ function TechnicalDocsWizardContent() {
     const loadLinkedGuides = async (homeId: string) => {
         setLoadingGuides(true);
         try {
-            const response = await apiClient.listApplianceGuides({ home_id: homeId, pageSize: 100 });
+            const response = await apiClient.listApplianceGuidesByHome(homeId);
             if (response.success) {
-                setApplianceGuides(response.data);
                 setLinkedGuides(response.data.map(guide => guide.id));
             }
         } catch (error) {
-            console.error('Error loading appliance guides:', error);
+            console.error('Error loading linked appliance guides:', error);
         } finally {
             setLoadingGuides(false);
+        }
+    };
+
+    // Cargar todas las guías de electrodomésticos disponibles
+    const loadAllApplianceGuides = async () => {
+        try {
+            const response = await apiClient.listApplianceGuides({ pageSize: 100 });
+            if (response.success) {
+                setApplianceGuides(response.data);
+            }
+        } catch (error) {
+            console.error('Error loading all appliance guides:', error);
         }
     };
 
@@ -170,6 +188,49 @@ function TechnicalDocsWizardContent() {
         }
     };
 
+    // Editar plano técnico
+    const handleEditPlan = (plan: TechnicalPlan) => {
+        setEditingPlan(plan);
+        setEditPlanForm({
+            title: plan.title,
+            description: plan.description || ''
+        });
+    };
+
+    // Guardar edición de plano técnico
+    const handleSavePlanEdit = async () => {
+        if (!editingPlan || !selectedHome) return;
+
+        try {
+            await apiClient.updateTechnicalPlan(editingPlan.id, {
+                title: editPlanForm.title,
+                description: editPlanForm.description || '',
+                plan_file_url: editingPlan.plan_file_url || ''
+            });
+            setSubmitMessage({ type: 'success', message: 'Plano técnico actualizado exitosamente' });
+            setEditingPlan(null);
+            loadTechnicalPlans(selectedHome.id);
+        } catch (error) {
+            console.error('Error updating technical plan:', error);
+            setSubmitMessage({ type: 'error', message: 'Error al actualizar el plano técnico' });
+        }
+    };
+
+    // Eliminar plano técnico
+    const handleDeletePlan = async (plan: TechnicalPlan) => {
+        try {
+            await apiClient.deleteTechnicalPlan(plan.id);
+            setSubmitMessage({ type: 'success', message: 'Plano técnico eliminado exitosamente' });
+            setDeletingPlan(null);
+            if (selectedHome) {
+                loadTechnicalPlans(selectedHome.id);
+            }
+        } catch (error) {
+            console.error('Error deleting technical plan:', error);
+            setSubmitMessage({ type: 'error', message: 'Error al eliminar el plano técnico' });
+        }
+    };
+
     // Crear guía de electrodoméstico
     const handleCreateApplianceGuide = async (data: CreateApplianceGuideFormData) => {
         if (!selectedHome) return;
@@ -198,6 +259,7 @@ function TechnicalDocsWizardContent() {
                 setVideoUrls([]);
                 setShowApplianceForm(false);
                 loadLinkedGuides(selectedHome.id);
+                loadAllApplianceGuides();
             }
         } catch (error) {
             console.error('Error creating appliance guide:', error);
@@ -207,6 +269,21 @@ function TechnicalDocsWizardContent() {
 
     // Filtrar guías no vinculadas
     const unlinkedGuides = applianceGuides.filter(guide => !linkedGuides.includes(guide.id));
+
+    // Desvincular guía de electrodoméstico
+    const handleUnlinkGuide = async (guideId: string) => {
+        if (!selectedHome) return;
+
+        try {
+            await apiClient.unlinkApplianceGuide(selectedHome.id, guideId);
+            setSubmitMessage({ type: 'success', message: 'Guía desvinculada exitosamente' });
+            loadLinkedGuides(selectedHome.id);
+            loadAllApplianceGuides();
+        } catch (error) {
+            console.error('Error unlinking guide:', error);
+            setSubmitMessage({ type: 'error', message: 'Error al desvincular la guía' });
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
@@ -268,6 +345,7 @@ function TechnicalDocsWizardContent() {
                                 if (home) {
                                     loadTechnicalPlans(home.id);
                                     loadLinkedGuides(home.id);
+                                    loadAllApplianceGuides();
                                 }
                             }}
                             title="Seleccionar Casa para Documentación Técnica"
@@ -321,13 +399,29 @@ function TechnicalDocsWizardContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {technicalPlans.map((plan) => (
                                         <div key={plan.id} className="border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center space-x-3 mb-3">
-                                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <span className="text-green-600 text-sm">📐</span>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                        <span className="text-green-600 text-sm">📐</span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{plan.title}</h4>
+                                                        <p className="text-sm text-gray-500">{plan.description || 'Sin descripción'}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-medium text-gray-900">{plan.title}</h4>
-                                                    <p className="text-sm text-gray-500">{plan.description || 'Sin descripción'}</p>
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => handleEditPlan(plan)}
+                                                        className="px-2 py-1 text-xs font-medium text-green-600 bg-green-100 border border-green-200 rounded hover:bg-green-200"
+                                                    >
+                                                        ✏️ Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setDeletingPlan(plan)}
+                                                        className="px-2 py-1 text-xs font-medium text-red-600 bg-red-100 border border-red-200 rounded hover:bg-red-200"
+                                                    >
+                                                        🗑️ Eliminar
+                                                    </button>
                                                 </div>
                                             </div>
                                             {plan.plan_file_url && (
@@ -377,16 +471,24 @@ function TechnicalDocsWizardContent() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {applianceGuides.filter(guide => linkedGuides.includes(guide.id)).map((guide) => (
                                         <div key={guide.id} className="border border-gray-200 rounded-lg p-4">
-                                            <div className="flex items-center space-x-3 mb-3">
-                                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <span className="text-green-600 text-sm">🔌</span>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                        <span className="text-green-600 text-sm">🔌</span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium text-gray-900">{guide.equipment_name}</h4>
+                                                        <p className="text-sm text-gray-500">
+                                                            {guide.brand_id && brands.find(b => b.id === guide.brand_id)?.name} • {guide.model}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-medium text-gray-900">{guide.equipment_name}</h4>
-                                                    <p className="text-sm text-gray-500">
-                                                        {guide.brand_id && brands.find(b => b.id === guide.brand_id)?.name} • {guide.model}
-                                                    </p>
-                                                </div>
+                                                <button
+                                                    onClick={() => handleUnlinkGuide(guide.id)}
+                                                    className="px-2 py-1 text-xs font-medium text-orange-600 bg-orange-100 border border-orange-200 rounded hover:bg-orange-200"
+                                                >
+                                                    🔗 Desvincular
+                                                </button>
                                             </div>
                                             {guide.brief_description && (
                                                 <p className="text-sm text-gray-600 mb-2">{guide.brief_description}</p>
@@ -450,6 +552,7 @@ function TechnicalDocsWizardContent() {
                                                             await apiClient.linkApplianceGuide(selectedHome.id, guide.id);
                                                             setSubmitMessage({ type: 'success', message: 'Guía vinculada exitosamente' });
                                                             loadLinkedGuides(selectedHome.id);
+                                                            loadAllApplianceGuides();
                                                         } catch (error) {
                                                             console.error('Error linking guide:', error);
                                                             setSubmitMessage({ type: 'error', message: 'Error al vincular la guía' });
@@ -711,6 +814,106 @@ function TechnicalDocsWizardContent() {
                                         </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal para editar plano técnico */}
+                {editingPlan && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div className="flex min-h-screen items-center justify-center p-4">
+                            <div className="fixed inset-0 bg-black opacity-30" onClick={() => setEditingPlan(null)}></div>
+                            <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                                <div className="mb-4">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        Editar Plano Técnico
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                        Casa: <strong>{selectedHome?.name}</strong>
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Título del Plano *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editPlanForm.title}
+                                            onChange={(e) => setEditPlanForm({ ...editPlanForm, title: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 bg-white placeholder-gray-400"
+                                            placeholder="Ej: Plano eléctrico, Plano de fontanería..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Descripción (opcional)
+                                        </label>
+                                        <textarea
+                                            value={editPlanForm.description}
+                                            onChange={(e) => setEditPlanForm({ ...editPlanForm, description: e.target.value })}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 bg-white placeholder-gray-400"
+                                            placeholder="Descripción del plano técnico..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end space-x-3 pt-4">
+                                    <button
+                                        onClick={() => setEditingPlan(null)}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleSavePlanEdit}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                    >
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de confirmación para eliminar plano técnico */}
+                {deletingPlan && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div className="flex min-h-screen items-center justify-center p-4">
+                            <div className="fixed inset-0 bg-black opacity-30" onClick={() => setDeletingPlan(null)}></div>
+                            <div className="relative bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+                                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
+                                        Eliminar Plano Técnico
+                                    </h3>
+                                    <p className="text-sm text-gray-500 text-center">
+                                        ¿Estás seguro de que quieres eliminar <strong>{deletingPlan.title}</strong>?
+                                    </p>
+                                </div>
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => setDeletingPlan(null)}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeletePlan(deletingPlan)}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
