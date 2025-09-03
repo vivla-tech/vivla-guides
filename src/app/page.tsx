@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { HomeWithCompleteness } from '@/lib/types';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
+import HomeSearchFilters from '@/components/ui/HomeSearchFilters';
 
 
 
@@ -113,45 +114,16 @@ export default function Home() {
         {/* Bloque de estadísticas eliminado */}
 
         {/* Filtros y Búsqueda */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                Buscar casa
-              </label>
-              <input
-                type="text"
-                id="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar por nombre o dirección..."
-                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              {hasLoadedOnce && isLoadingHomes && (
-                <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
-                  <span className="inline-block h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" aria-hidden="true"></span>
-                  Actualizando resultados...
-                </div>
-              )}
-            </div>
-            <div className="md:w-48">
-              <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-2">
-                Destino
-              </label>
-              <select
-                id="destination"
-                value={destinationFilter}
-                onChange={(e) => { setDestinationFilter(e.target.value); setCurrentPage(1); }}
-                className="text-gray-700 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Todos los destinos</option>
-                {destinations && destinations.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        <HomeSearchFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          destinationFilter={destinationFilter}
+          onDestinationChange={(value) => { setDestinationFilter(value); setCurrentPage(1); }}
+          destinations={destinations || []}
+          isLoading={isLoadingHomes}
+          hasLoadedOnce={hasLoadedOnce}
+          className="mb-8"
+        />
 
         {/* Grid de Casas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

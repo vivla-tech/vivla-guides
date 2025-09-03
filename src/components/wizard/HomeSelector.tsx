@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { HomeWithCompleteness } from '@/lib/types';
 import { createApiClient } from '@/lib/apiClient';
 import { config } from '@/lib/config';
+import HomeSearchFilters from '@/components/ui/HomeSearchFilters';
 
 interface HomeSelectorProps {
     selectedHome: HomeWithCompleteness | null;
@@ -25,6 +26,7 @@ export default function HomeSelector({
     const [homes, setHomes] = useState<HomeWithCompleteness[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [destinationFilter, setDestinationFilter] = useState('');
     const [destinations, setDestinations] = useState<string[]>([]);
 
@@ -34,6 +36,15 @@ export default function HomeSelector({
     const [totalHomes, setTotalHomes] = useState(0);
     const [pageSize] = useState(20);
 
+    // Debounce del término de búsqueda (450ms como en el dashboard)
+    useEffect(() => {
+        const handle = setTimeout(() => setDebouncedSearchTerm(searchTerm), 450);
+        return () => clearTimeout(handle);
+    }, [searchTerm]);
+
+    // Solo activar búsqueda si hay 3+ caracteres
+    const effectiveSearch = debouncedSearchTerm && debouncedSearchTerm.length >= 3 ? debouncedSearchTerm : '';
+
     const apiClient = createApiClient(config.apiUrl);
 
     // Cargar casas y destinos
@@ -42,21 +53,43 @@ export default function HomeSelector({
         loadDestinations();
     }, []);
 
+    // Filtrar casas basado en búsqueda y destino (filtrado en cliente como en el dashboard)
+    const filteredHomes = homes.filter(home => {
+        const matchesSearch = effectiveSearch === '' ||
+            home.name.toLowerCase().includes(effectiveSearch.toLowerCase()) ||
+            home.address.toLowerCase().includes(effectiveSearch.toLowerCase());
+
+        const matchesDestination = destinationFilter === '' ||
+            home.destination === destinationFilter;
+
+        return matchesSearch && matchesDestination;
+    });
+
+    // Paginación híbrida como en el dashboard
+    const useClientPagination = Boolean(effectiveSearch || destinationFilter);
+    const clientTotalPages = Math.max(1, Math.ceil(filteredHomes.length / pageSize));
+    const visibleHomes = useClientPagination
+        ? filteredHomes.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+        : filteredHomes;
+
     // Recargar casas cuando cambien los filtros
     useEffect(() => {
-        if ((searchTerm && searchTerm.length >= 3) || destinationFilter) {
+        if (effectiveSearch || destinationFilter) {
             // Reset a la primera página cuando se aplican filtros
             loadHomes(1);
         }
-    }, [searchTerm, destinationFilter]);
+    }, [effectiveSearch, destinationFilter]);
 
     const loadHomes = async (page: number = currentPage) => {
         setLoading(true);
         try {
-            const response = await apiClient.listHomesWithCompleteness({
-                page,
-                pageSize
-            });
+            // Lógica híbrida como en el dashboard
+            const params = {
+                page: (effectiveSearch || destinationFilter) ? 1 : page,
+                pageSize: (effectiveSearch || destinationFilter) ? 100 : pageSize
+            };
+
+            const response = await apiClient.listHomesWithCompleteness(params);
             if (response.success) {
                 setHomes(response.data);
                 setTotalPages(response.meta.totalPages);
@@ -80,15 +113,6 @@ export default function HomeSelector({
             console.error('Error loading destinations:', error);
         }
     };
-
-    // Filtrar casas basado en búsqueda y destino (filtrado en cliente para la página actual)
-    const filteredHomes = homes.filter(home => {
-        const matchesSearch = !searchTerm || searchTerm.length < 3 ||
-            home.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            home.address.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesDestination = !destinationFilter || home.destination === destinationFilter;
-        return matchesSearch && matchesDestination;
-    });
 
     const getCompletenessColor = (completeness: number) => {
         if (completeness >= 80) return 'text-green-600 bg-green-50 border-green-200';
@@ -117,45 +141,25 @@ export default function HomeSelector({
             </div>
 
             {/* Filtros */}
-            <div className="space-y-4">
-                {/* Búsqueda */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Buscar casa
-                    </label>
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Buscar por nombre o dirección (mínimo 3 letras)..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white placeholder-gray-400"
-                    />
-                    {searchTerm && searchTerm.length < 3 && (
-                        <p className="text-sm text-gray-500 mt-1">
-                            Escribe al menos 3 letras para buscar
-                        </p>
-                    )}
-                </div>
+            <HomeSearchFilters
+                searchQuery={searchTerm}
+                onSearchChange={setSearchTerm}
+                destinationFilter={destinationFilter}
+                onDestinationChange={setDestinationFilter}
+                destinations={destinations}
+                isLoading={loading}
+                hasLoadedOnce={true}
+                showLoadingIndicator={false}
+            />
 
-                {/* Filtro por destino */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Filtrar por destino
-                    </label>
-                    <select
-                        value={destinationFilter}
-                        onChange={(e) => setDestinationFilter(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    >
-                        <option value="">Todos los destinos</option>
-                        {destinations.map((destination) => (
-                            <option key={destination} value={destination}>
-                                {destination}
-                            </option>
-                        ))}
-                    </select>
+            {/* Mensaje de mínimo 3 letras */}
+            {searchTerm && searchTerm.length < 3 && (
+                <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                        Escribe al menos 3 letras para buscar
+                    </p>
                 </div>
-            </div>
+            )}
 
             {/* Lista de casas */}
             <div className="space-y-4">
@@ -164,10 +168,10 @@ export default function HomeSelector({
                         <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                         <p className="text-blue-600 text-sm">Cargando casas...</p>
                     </div>
-                ) : filteredHomes.length > 0 ? (
+                ) : visibleHomes.length > 0 ? (
                     <div className="space-y-4">
                         <div className="grid gap-4 max-h-96 overflow-y-auto">
-                            {filteredHomes.map((home) => (
+                            {visibleHomes.map((home) => (
                                 <div
                                     key={home.id}
                                     onClick={() => onHomeSelect(home)}
@@ -210,14 +214,14 @@ export default function HomeSelector({
                         </div>
 
                         {/* Controles de paginación */}
-                        {totalPages > 1 && (
+                        {(useClientPagination ? clientTotalPages > 1 : totalPages > 1) && (
                             <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                                 <div className="text-sm text-gray-500">
-                                    Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, totalHomes)} de {totalHomes} casas
+                                    Mostrando {((currentPage - 1) * pageSize) + 1} a {Math.min(currentPage * pageSize, useClientPagination ? filteredHomes.length : totalHomes)} de {useClientPagination ? filteredHomes.length : totalHomes} casas
                                 </div>
                                 <div className="flex space-x-2">
                                     <button
-                                        onClick={() => loadHomes(currentPage - 1)}
+                                        onClick={() => useClientPagination ? setCurrentPage(currentPage - 1) : loadHomes(currentPage - 1)}
                                         disabled={currentPage <= 1}
                                         className={`px-3 py-1 text-sm font-medium rounded-md ${currentPage <= 1
                                             ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
@@ -227,12 +231,12 @@ export default function HomeSelector({
                                         Anterior
                                     </button>
                                     <div className="flex space-x-1">
-                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        {Array.from({ length: Math.min(5, useClientPagination ? clientTotalPages : totalPages) }, (_, i) => {
                                             const pageNum = i + 1;
                                             return (
                                                 <button
                                                     key={pageNum}
-                                                    onClick={() => loadHomes(pageNum)}
+                                                    onClick={() => useClientPagination ? setCurrentPage(pageNum) : loadHomes(pageNum)}
                                                     className={`px-3 py-1 text-sm font-medium rounded-md ${currentPage === pageNum
                                                         ? 'text-white bg-blue-600'
                                                         : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
@@ -242,14 +246,14 @@ export default function HomeSelector({
                                                 </button>
                                             );
                                         })}
-                                        {totalPages > 5 && (
+                                        {(useClientPagination ? clientTotalPages : totalPages) > 5 && (
                                             <span className="px-3 py-1 text-sm text-gray-500">...</span>
                                         )}
                                     </div>
                                     <button
-                                        onClick={() => loadHomes(currentPage + 1)}
-                                        disabled={currentPage >= totalPages}
-                                        className={`px-3 py-1 text-sm font-medium rounded-md ${currentPage >= totalPages
+                                        onClick={() => useClientPagination ? setCurrentPage(currentPage + 1) : loadHomes(currentPage + 1)}
+                                        disabled={currentPage >= (useClientPagination ? clientTotalPages : totalPages)}
+                                        className={`px-3 py-1 text-sm font-medium rounded-md ${currentPage >= (useClientPagination ? clientTotalPages : totalPages)
                                             ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                                             : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
                                             }`}
@@ -268,7 +272,7 @@ export default function HomeSelector({
                         <p className="text-gray-500 mb-2">
                             {searchTerm && searchTerm.length < 3
                                 ? 'Escribe al menos 3 letras para buscar'
-                                : searchTerm || destinationFilter
+                                : effectiveSearch || destinationFilter
                                     ? 'No se encontraron casas con los filtros aplicados'
                                     : currentPage > 1
                                         ? 'No hay más casas en esta página'
@@ -278,7 +282,7 @@ export default function HomeSelector({
                         <p className="text-sm text-gray-400">
                             {searchTerm && searchTerm.length < 3
                                 ? 'La búsqueda se activará automáticamente'
-                                : searchTerm || destinationFilter
+                                : effectiveSearch || destinationFilter
                                     ? 'Intenta ajustar los filtros de búsqueda'
                                     : currentPage > 1
                                         ? 'Navega a la página anterior'
