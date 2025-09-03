@@ -380,7 +380,7 @@ function InventoryWizardContent() {
 
                                         </div>
                                     ))}
-                                    {homeInventory.length > 3 && (
+                                    {homeInventory.length > 0 && (
                                         <div className="text-center">
                                             <Link
                                                 href={`/home/${wizardState.home?.id}/inventory`}
