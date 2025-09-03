@@ -4,15 +4,17 @@ import { useState } from 'react';
 import BrandsTab from '@/components/tabs/BrandsTab';
 import CategoriesTab from '@/components/tabs/CategoriesTab';
 import ProductsTab from '@/components/tabs/ProductsTab';
+import SuppliersTab from '@/components/tabs/SuppliersTab';
 
 export default function CatalogPage() {
-    const [activeTab, setActiveTab] = useState<'brands' | 'categories' | 'products'>('brands');
+    const [activeTab, setActiveTab] = useState<'brands' | 'categories' | 'products' | 'suppliers'>('brands');
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const tabs = [
         { id: 'brands', label: 'Marcas', icon: '🏷️' },
         { id: 'categories', label: 'Categorías', icon: '📂' },
         { id: 'products', label: 'Productos', icon: '📦' },
+        { id: 'suppliers', label: 'Proveedores', icon: '🏢' },
     ] as const;
 
     return (
@@ -25,7 +27,7 @@ export default function CatalogPage() {
                             Gestionar Catálogo
                         </h1>
                         <p className="text-gray-600 mt-1">
-                            Administra marcas, categorías y productos del catálogo
+                            Administra marcas, categorías, productos y proveedores del catálogo
                         </p>
                     </div>
                 </div>
@@ -61,6 +63,9 @@ export default function CatalogPage() {
                     )}
                     {activeTab === 'products' && (
                         <ProductsTab submitMessage={submitMessage} setSubmitMessage={setSubmitMessage} />
+                    )}
+                    {activeTab === 'suppliers' && (
+                        <SuppliersTab submitMessage={submitMessage} setSubmitMessage={setSubmitMessage} />
                     )}
                 </div>
             </div>
