@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,7 +50,7 @@ const STEPS = [
     { id: 3, title: 'Añadir Playbooks (Opcional)', description: 'Crea guías de procesos para esta habitación' },
 ];
 
-export default function StylingGuidesWizardPage() {
+function StylingGuidesWizardContent() {
     const searchParams = useSearchParams();
     const homeIdFromUrl = searchParams.get('homeId');
     const roomIdFromUrl = searchParams.get('roomId');
@@ -334,7 +334,9 @@ export default function StylingGuidesWizardPage() {
                                 selectedHome={wizardState.home}
                                 onHomeSelect={(home) => {
                                     setWizardState(prev => ({ ...prev, home }));
-                                    loadRooms(home.id);
+                                    if (home) {
+                                        loadRooms(home.id);
+                                    }
                                 }}
                                 title="Seleccionar Casa para Guía de Estilo"
                                 description="Elige la casa para la que quieres crear una guía de estilo"
@@ -972,5 +974,20 @@ export default function StylingGuidesWizardPage() {
                 </div>
             </div>
         </>
+    );
+}
+
+export default function StylingGuidesWizardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando...</p>
+                </div>
+            </div>
+        }>
+            <StylingGuidesWizardContent />
+        </Suspense>
     );
 }

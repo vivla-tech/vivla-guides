@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -57,7 +57,7 @@ const STEPS = [
     { id: 2, title: 'Inventario', description: '¿Qué hay en mi casa?' },
 ];
 
-export default function InventoryWizardPage() {
+function InventoryWizardContent() {
     const searchParams = useSearchParams();
     const homeIdFromUrl = searchParams.get('homeId');
 
@@ -327,8 +327,10 @@ export default function InventoryWizardPage() {
                         selectedHome={wizardState.home}
                         onHomeSelect={(home) => {
                             setWizardState(prev => ({ ...prev, home }));
-                            loadHomeInventory(home.id);
-                            handleNextStep();
+                            if (home) {
+                                loadHomeInventory(home.id);
+                                handleNextStep();
+                            }
                         }}
                         title="Seleccionar Casa para Inventario"
                         description="Elige la casa para la que quieres gestionar el inventario"
@@ -901,5 +903,20 @@ export default function InventoryWizardPage() {
 
 
         </div>
+    );
+}
+
+export default function InventoryWizardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando...</p>
+                </div>
+            </div>
+        }>
+            <InventoryWizardContent />
+        </Suspense>
     );
 }

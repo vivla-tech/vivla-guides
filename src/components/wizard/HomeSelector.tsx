@@ -8,7 +8,7 @@ import HomeSearchFilters from '@/components/ui/HomeSearchFilters';
 
 interface HomeSelectorProps {
     selectedHome: HomeWithCompleteness | null;
-    onHomeSelect: (home: HomeWithCompleteness) => void;
+    onHomeSelect: (home: HomeWithCompleteness | null) => void;
     title?: string;
     description?: string;
     showCompleteness?: boolean;
@@ -306,7 +306,7 @@ export default function HomeSelector({
                             </p>
                         </div>
                         <button
-                            onClick={() => onHomeSelect(null as any)}
+                            onClick={() => onHomeSelect(null)}
                             className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
                             Cambiar
