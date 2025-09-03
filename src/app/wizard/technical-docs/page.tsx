@@ -119,9 +119,14 @@ function TechnicalDocsWizardContent() {
     const loadTechnicalPlans = async (homeId: string) => {
         setLoadingPlans(true);
         try {
+            console.log('Loading technical plans for home:', homeId);
             const response = await apiClient.listTechnicalPlans({ home_id: homeId, pageSize: 100 });
             if (response.success) {
-                setTechnicalPlans(response.data);
+                console.log('Technical plans loaded:', response.data);
+                // Filtrar solo los planos que pertenecen a esta casa específica
+                const filteredPlans = response.data.filter(plan => plan.home_id === homeId);
+                console.log('Filtered technical plans for this home:', filteredPlans);
+                setTechnicalPlans(filteredPlans);
             }
         } catch (error) {
             console.error('Error loading technical plans:', error);
@@ -176,6 +181,7 @@ function TechnicalDocsWizardContent() {
                 plan_file_url: planFileUrls[0] || '',
             };
 
+            console.log('Creating technical plan with payload:', payload);
             await apiClient.createTechnicalPlan(payload);
             setSubmitMessage({ type: 'success', message: 'Plano técnico creado exitosamente' });
             technicalPlanForm.reset();

@@ -82,9 +82,14 @@ export default function HomeDetailPage() {
 
     const loadTechnicalPlans = async (homeId: string) => {
         try {
+            console.log('Loading technical plans for home:', homeId);
             const response = await apiClient.listTechnicalPlans({ home_id: homeId });
             if (response.success) {
-                setTechnicalPlans(response.data);
+                console.log('Technical plans loaded:', response.data);
+                // Filtrar solo los planos que pertenecen a esta casa específica
+                const filteredPlans = response.data.filter(plan => plan.home_id === homeId);
+                console.log('Filtered technical plans for this home:', filteredPlans);
+                setTechnicalPlans(filteredPlans);
             }
         } catch (error) {
             console.error('Error loading technical plans:', error);
