@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VIVLA Guides - Dashboard",
+  title: "VIVLA Guides",
   description: "Sistema de gestión de casas, inventario y guías para VIVLA",
 };
 

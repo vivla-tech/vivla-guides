@@ -11,6 +11,7 @@ import { config } from '@/lib/config';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
 import HomeSelector from '@/components/wizard/HomeSelector';
+import { useSearchParams } from 'next/navigation';
 
 // Esquemas de validación
 const createTechnicalPlanSchema = z.object({
@@ -35,6 +36,9 @@ type CreateTechnicalPlanFormData = z.infer<typeof createTechnicalPlanSchema>;
 type CreateApplianceGuideFormData = z.infer<typeof createApplianceGuideSchema>;
 
 export default function TechnicalDocsWizardPage() {
+    const searchParams = useSearchParams();
+    const homeIdFromUrl = searchParams.get('homeId');
+
     const [selectedHome, setSelectedHome] = useState<HomeWithCompleteness | null>(null);
     const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -60,6 +64,28 @@ export default function TechnicalDocsWizardPage() {
 
     // Cargar marcas
     const { data: brandsData } = useApiData<Brand>('brands', { pageSize: 100 });
+
+    // Cargar casa si hay homeId en la URL
+    useEffect(() => {
+        if (homeIdFromUrl) {
+            const loadHomeFromUrl = async () => {
+                try {
+                    const response = await apiClient.listHomesWithCompleteness({ pageSize: 100 });
+                    if (response.success) {
+                        const foundHome = response.data.find(h => h.id === homeIdFromUrl);
+                        if (foundHome) {
+                            setSelectedHome(foundHome);
+                            loadTechnicalPlans(foundHome.id);
+                            loadLinkedGuides(foundHome.id);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading home from URL:', error);
+                }
+            };
+            loadHomeFromUrl();
+        }
+    }, [homeIdFromUrl, apiClient]);
 
     // Formularios
     const technicalPlanForm = useForm<CreateTechnicalPlanFormData>({
@@ -266,7 +292,7 @@ export default function TechnicalDocsWizardPage() {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                        Volver al Dashboard
+                        Volver al Inicio
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         Gestionar Documentación Técnica

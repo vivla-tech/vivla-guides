@@ -11,6 +11,7 @@ import { config } from '@/lib/config';
 import { useApiData } from '@/hooks/useApiData';
 import Link from 'next/link';
 import HomeSelector from '@/components/wizard/HomeSelector';
+import { useSearchParams } from 'next/navigation';
 
 // Esquemas de validación para cada paso
 const createStylingGuideSchema = z.object({
@@ -50,8 +51,12 @@ const STEPS = [
 ];
 
 export default function StylingGuidesWizardPage() {
+    const searchParams = useSearchParams();
+    const homeIdFromUrl = searchParams.get('homeId');
+    const roomIdFromUrl = searchParams.get('roomId');
+
     const [wizardState, setWizardState] = useState<WizardState>({
-        currentStep: 1,
+        currentStep: homeIdFromUrl ? 2 : 1, // Saltar al paso 2 si hay homeId en URL
         home: null,
         room: null,
     });
@@ -72,6 +77,38 @@ export default function StylingGuidesWizardPage() {
 
     // Cargar tipos de habitación
     const { data: roomTypesData } = useApiData<RoomType>('rooms-type', { pageSize: 100 });
+
+    // Cargar casa y habitación si hay parámetros en la URL
+    useEffect(() => {
+        if (homeIdFromUrl) {
+            const loadHomeFromUrl = async () => {
+                try {
+                    const response = await apiClient.listHomesWithCompleteness({ pageSize: 100 });
+                    if (response.success) {
+                        const foundHome = response.data.find(h => h.id === homeIdFromUrl);
+                        if (foundHome) {
+                            setWizardState(prev => ({ ...prev, home: foundHome }));
+                            loadRooms(foundHome.id);
+
+                            // Si también hay roomId, cargar la habitación
+                            if (roomIdFromUrl) {
+                                const roomResponse = await apiClient.listRooms({ home_id: homeIdFromUrl });
+                                if (roomResponse.success) {
+                                    const foundRoom = roomResponse.data.find(r => r.id === roomIdFromUrl);
+                                    if (foundRoom) {
+                                        setWizardState(prev => ({ ...prev, room: foundRoom }));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading home/room from URL:', error);
+                }
+            };
+            loadHomeFromUrl();
+        }
+    }, [homeIdFromUrl, roomIdFromUrl, apiClient]);
 
     useEffect(() => {
         if (roomTypesData) {
@@ -831,7 +868,7 @@ export default function StylingGuidesWizardPage() {
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Volver al Dashboard
+                            Volver al Inicio
                         </Link>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
                             Crear Guía de Estilo

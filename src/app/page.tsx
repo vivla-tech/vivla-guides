@@ -101,7 +101,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                🏠 VIVLA Guides - Dashboard
+                🏠 VIVLA
               </h1>
               <p className="text-gray-600">
                 Gestiona y visualiza todas las casas, su inventario y guías asociadas
@@ -130,7 +130,7 @@ export default function Home() {
           {visibleHomes.map((home) => (
             <Link
               key={home.id}
-              href={`/dashboard/${home.id}`}
+              href={`/home/${home.id}`}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
             >
               <div className="aspect-video bg-gray-200 relative">
@@ -231,12 +231,9 @@ export default function Home() {
             </p>
             {!searchQuery && !destinationFilter && (
               <div className="mt-6">
-                <Link
-                  href="/admin/create-home"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Crear primera casa
-                </Link>
+                <p className="text-sm text-gray-500">
+                  No hay casas disponibles. Contacta al administrador para crear la primera casa.
+                </p>
               </div>
             )}
           </div>
