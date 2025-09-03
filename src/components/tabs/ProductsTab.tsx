@@ -411,7 +411,7 @@ export default function ProductsTab({ submitMessage, setSubmitMessage }: Product
                                                 </div>
                                             )}
                                             <div className="text-sm text-green-600 font-medium mt-1">
-                                                €{(amenity.base_price || 0).toFixed(2)}
+                                                €{Number(amenity.base_price || 0).toFixed(2)}
                                             </div>
                                         </div>
                                         <div className="flex space-x-2 ml-3">
